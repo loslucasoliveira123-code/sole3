@@ -10,33 +10,90 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MaisRouteImport } from './routes/mais'
+import { Route as MetasRouteImport } from './routes/metas'
+import { Route as MovimentosRouteImport } from './routes/movimentos'
+import { Route as ProjetosRouteImport } from './routes/projetos'
+import { Route as SoleAiRouteImport } from './routes/sole-ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MaisRoute = MaisRouteImport.update({
+  id: '/mais',
+  path: '/mais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetasRoute = MetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovimentosRoute = MovimentosRouteImport.update({
+  id: '/movimentos',
+  path: '/movimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosRoute = ProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoleAiRoute = SoleAiRouteImport.update({
+  id: '/sole-ai',
+  path: '/sole-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
+  '/metas': typeof MetasRoute
+  '/movimentos': typeof MovimentosRoute
+  '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
+  '/metas': typeof MetasRoute
+  '/movimentos': typeof MovimentosRoute
+  '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
+  '/metas': typeof MetasRoute
+  '/movimentos': typeof MovimentosRoute
+  '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  id:
+    | '__root__'
+    | '/'
+    | '/mais'
+    | '/metas'
+    | '/movimentos'
+    | '/projetos'
+    | '/sole-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MaisRoute: typeof MaisRoute
+  MetasRoute: typeof MetasRoute
+  MovimentosRoute: typeof MovimentosRoute
+  ProjetosRoute: typeof ProjetosRoute
+  SoleAiRoute: typeof SoleAiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +105,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mais': {
+      id: '/mais'
+      path: '/mais'
+      fullPath: '/mais'
+      preLoaderRoute: typeof MaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metas': {
+      id: '/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof MetasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movimentos': {
+      id: '/movimentos'
+      path: '/movimentos'
+      fullPath: '/movimentos'
+      preLoaderRoute: typeof MovimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos': {
+      id: '/projetos'
+      path: '/projetos'
+      fullPath: '/projetos'
+      preLoaderRoute: typeof ProjetosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sole-ai': {
+      id: '/sole-ai'
+      path: '/sole-ai'
+      fullPath: '/sole-ai'
+      preLoaderRoute: typeof SoleAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MaisRoute: MaisRoute,
+  MetasRoute: MetasRoute,
+  MovimentosRoute: MovimentosRoute,
+  ProjetosRoute: ProjetosRoute,
+  SoleAiRoute: SoleAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
