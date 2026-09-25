@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { brl, projetos } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/projetos")({
+export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({
     meta: [
       { title: "Projetos — SOLE3" },

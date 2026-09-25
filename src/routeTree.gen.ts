@@ -10,90 +10,130 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as MaisRouteImport } from './routes/mais'
-import { Route as MetasRouteImport } from './routes/metas'
-import { Route as MovimentosRouteImport } from './routes/movimentos'
-import { Route as ProjetosRouteImport } from './routes/projetos'
-import { Route as SoleAiRouteImport } from './routes/sole-ai'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedMaisRouteImport } from './routes/_authenticated/mais'
+import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMovimentosRouteImport } from './routes/_authenticated/movimentos'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
+import { Route as AuthenticatedSoleAiRouteImport } from './routes/_authenticated/sole-ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MaisRoute = MaisRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMaisRoute = AuthenticatedMaisRouteImport.update({
   id: '/mais',
   path: '/mais',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const MetasRoute = MetasRouteImport.update({
+const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const MovimentosRoute = MovimentosRouteImport.update({
+const AuthenticatedMovimentosRoute = AuthenticatedMovimentosRouteImport.update({
   id: '/movimentos',
   path: '/movimentos',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProjetosRoute = ProjetosRouteImport.update({
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SoleAiRoute = SoleAiRouteImport.update({
+const AuthenticatedSoleAiRoute = AuthenticatedSoleAiRouteImport.update({
   id: '/sole-ai',
   path: '/sole-ai',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/auth': typeof AuthRoute
+  '/mais': typeof AuthenticatedMaisRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/movimentos': typeof AuthenticatedMovimentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/auth': typeof AuthRoute
+  '/mais': typeof AuthenticatedMaisRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/movimentos': typeof AuthenticatedMovimentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/mais': typeof AuthenticatedMaisRoute
+  '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/movimentos': typeof AuthenticatedMovimentosRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
+  '/_authenticated/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
+    | '/auth'
     | '/mais'
     | '/metas'
     | '/movimentos'
+    | '/painel'
     | '/projetos'
     | '/sole-ai'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/auth'
+    | '/mais'
+    | '/metas'
+    | '/movimentos'
+    | '/painel'
+    | '/projetos'
+    | '/sole-ai'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/mais'
+    | '/_authenticated/metas'
+    | '/_authenticated/movimentos'
+    | '/_authenticated/painel'
+    | '/_authenticated/projetos'
+    | '/_authenticated/sole-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MaisRoute: typeof MaisRoute
-  MetasRoute: typeof MetasRoute
-  MovimentosRoute: typeof MovimentosRoute
-  ProjetosRoute: typeof ProjetosRoute
-  SoleAiRoute: typeof SoleAiRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -105,51 +145,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mais': {
-      id: '/mais'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/mais': {
+      id: '/_authenticated/mais'
       path: '/mais'
       fullPath: '/mais'
-      preLoaderRoute: typeof MaisRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedMaisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/metas': {
-      id: '/metas'
+    '/_authenticated/metas': {
+      id: '/_authenticated/metas'
       path: '/metas'
       fullPath: '/metas'
-      preLoaderRoute: typeof MetasRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedMetasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/movimentos': {
-      id: '/movimentos'
+    '/_authenticated/movimentos': {
+      id: '/_authenticated/movimentos'
       path: '/movimentos'
       fullPath: '/movimentos'
-      preLoaderRoute: typeof MovimentosRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedMovimentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/projetos': {
-      id: '/projetos'
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projetos': {
+      id: '/_authenticated/projetos'
       path: '/projetos'
       fullPath: '/projetos'
-      preLoaderRoute: typeof ProjetosRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProjetosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/sole-ai': {
-      id: '/sole-ai'
+    '/_authenticated/sole-ai': {
+      id: '/_authenticated/sole-ai'
       path: '/sole-ai'
       fullPath: '/sole-ai'
-      preLoaderRoute: typeof SoleAiRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSoleAiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedMaisRoute: typeof AuthenticatedMaisRoute
+  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMovimentosRoute: typeof AuthenticatedMovimentosRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRoute
+  AuthenticatedSoleAiRoute: typeof AuthenticatedSoleAiRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedMaisRoute: AuthenticatedMaisRoute,
+  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMovimentosRoute: AuthenticatedMovimentosRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedProjetosRoute: AuthenticatedProjetosRoute,
+  AuthenticatedSoleAiRoute: AuthenticatedSoleAiRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MaisRoute: MaisRoute,
-  MetasRoute: MetasRoute,
-  MovimentosRoute: MovimentosRoute,
-  ProjetosRoute: ProjetosRoute,
-  SoleAiRoute: SoleAiRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,228 +1,164 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { AppShell } from "@/components/AppShell";
-import {
-  brl,
-  fluxo,
-  insights,
-  movimentos,
-  orcamentos,
-  perfil,
-  resumos,
-  type Espaco,
-} from "@/lib/sole-data";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SOLE3 — O dinheiro do casal, organizado" },
+      { title: "Entrar — SOLE3" },
       {
         name: "description",
-        content:
-          "Painel financeiro do casal: patrimônio, SOLE Score, fluxo de caixa, orçamento e projetos em um só lugar.",
+        content: "Crie sua conta ou entre no SOLE3 para organizar o dinheiro do casal e seus projetos.",
       },
-      { property: "og:title", content: "SOLE3 — O dinheiro do casal, organizado" },
+      { property: "og:title", content: "Entrar — SOLE3" },
       {
         property: "og:description",
-        content:
-          "Gestão financeira pessoal, do casal e de projetos com assistente inteligente.",
+        content: "Gestão financeira pessoal, do casal e de projetos. Crie sua conta grátis.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: Dashboard,
+  component: AuthPage,
 });
 
-const espacos: { id: Espaco; label: string }[] = [
-  { id: "pessoal", label: "Pessoal" },
-  { id: "casal", label: "Casal" },
-  { id: "projetos", label: "Projetos" },
-];
+type Modo = "entrar" | "cadastrar";
 
-const corEstado = {
-  ok: "bg-success",
-  atencao: "bg-warning",
-  excedido: "bg-destructive",
-} as const;
+function AuthPage() {
+  const navigate = useNavigate();
+  const [modo, setModo] = useState<Modo>("entrar");
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
-function Dashboard() {
-  const [espaco, setEspaco] = useState<Espaco>("casal");
-  const r = resumos[espaco];
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: "/painel", replace: true });
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) navigate({ to: "/painel", replace: true });
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
+  async function enviar(e: FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    setAviso(null);
+    setCarregando(true);
+    try {
+      if (modo === "cadastrar") {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: senha,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { display_name: nome },
+          },
+        });
+        if (error) throw error;
+        if (!data.session) {
+          setAviso("Enviamos um link de confirmação para o seu e-mail. Confirme para entrar.");
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        if (error) throw error;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Algo deu errado.";
+      setErro(
+        msg.includes("Invalid login")
+          ? "E-mail ou senha incorretos."
+          : msg.includes("already registered")
+            ? "Este e-mail já tem cadastro. Tente entrar."
+            : msg,
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  async function social(provider: "google" | "apple") {
+    setErro(null);
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) setErro("Não foi possível entrar agora. Tente novamente.");
+  }
+
+  const input =
+    "w-full rounded-xl border border-border bg-card px-4 py-3 text-[15px] outline-none focus:border-foreground";
 
   return (
-    <AppShell>
-      <div className="mt-7 rise">
-        <p className="text-[13px] text-muted-foreground">Bom dia</p>
-        <h1 className="mt-1 font-display text-[38px] leading-none tracking-tight text-balance">
-          {espaco === "pessoal" ? perfil.nome : `${perfil.nome} & ${perfil.parceira}`}
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
+      <div className="rise">
+        <p className="text-[12px] uppercase tracking-[0.2em] text-muted-foreground">SOLE3</p>
+        <h1 className="mt-3 font-display text-[40px] leading-[1.05] tracking-tight text-balance">
+          {modo === "entrar" ? "Bem-vindo de volta." : "O dinheiro do casal, organizado."}
         </h1>
+        <p className="mt-3 text-[14px] text-muted-foreground">
+          {modo === "entrar"
+            ? "Entre para ver seu painel."
+            : "Crie sua conta e comece a planejar o futuro."}
+        </p>
       </div>
 
-      <div className="-mx-5 mt-5 flex gap-2 overflow-x-auto px-5 pb-1">
-        {espacos.map((e) => (
-          <button
-            key={e.id}
-            type="button"
-            onClick={() => setEspaco(e.id)}
-            className={`shrink-0 rounded-[14px] px-4 py-2.5 text-[13px] font-medium transition-all ${
-              espaco === e.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:-translate-y-0.5"
-            }`}
-          >
-            {e.label}
-          </button>
-        ))}
+      <div className="mt-8 grid gap-3">
+        <button
+          type="button"
+          onClick={() => social("google")}
+          className="rounded-xl border border-border bg-card px-4 py-3 text-[15px] font-medium hover:bg-accent"
+        >
+          Continuar com Google
+        </button>
+        <button
+          type="button"
+          onClick={() => social("apple")}
+          className="rounded-xl bg-foreground px-4 py-3 text-[15px] font-medium text-background hover:opacity-90"
+        >
+          Continuar com Apple
+        </button>
       </div>
 
-      <section className="folio mt-5 bg-primary px-6 py-6 text-primary-foreground rise">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="eyebrow text-primary-foreground/55">Patrimônio</p>
-            <p className="mt-2 font-display text-[44px] leading-none tracking-tight">
-              {brl(r.patrimonio)}
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground">
-            {r.variacao}
-          </span>
-        </div>
-        <div className="mt-5 flex gap-6 border-t border-primary-foreground/15 pt-4 text-[13px]">
-          <div>
-            <p className="text-primary-foreground/55">Saldo</p>
-            <p className="mt-0.5 font-medium">{brl(r.saldo)}</p>
-          </div>
-          <div>
-            <p className="text-primary-foreground/55">Economia</p>
-            <p className="mt-0.5 font-medium">{brl(r.economia)}</p>
-          </div>
-          <div>
-            <p className="text-primary-foreground/55">Dívidas</p>
-            <p className="mt-0.5 font-medium">{brl(r.dividas)}</p>
-          </div>
-        </div>
-      </section>
+      <div className="my-6 flex items-center gap-3 text-[12px] text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> ou com e-mail <span className="h-px flex-1 bg-border" />
+      </div>
 
-      <section className="mt-6">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[22px] tracking-tight">SOLE Score</h2>
-          <span className="text-[11px] text-muted-foreground">Atualizado hoje</span>
-        </div>
-        <div className="folio mt-4 flex items-center gap-6 border border-border px-6 py-6">
-          <div className="relative size-[134px] shrink-0">
-            <div
-              className="size-[134px] rounded-full"
-              style={{
-                background: `conic-gradient(var(--accent) 0 ${r.score}%, var(--border) ${r.score}% 100%)`,
-              }}
-            />
-            <div className="absolute inset-[14px] grid place-items-center rounded-full bg-background text-center">
-              <div>
-                <p className="font-display text-[42px] leading-none tracking-tight">{r.score}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">de 100</p>
-              </div>
-            </div>
-          </div>
-          <div className="text-[13px] leading-relaxed text-muted-foreground">
-            <p className="font-medium text-foreground">{r.scoreTitulo}</p>
-            <p className="mt-2">{r.scoreTexto}</p>
-          </div>
-        </div>
-      </section>
+      <form onSubmit={enviar} className="grid gap-3">
+        {modo === "cadastrar" && (
+          <input className={input} placeholder="Seu nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        )}
+        <input className={input} type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        <input className={input} type="password" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} autoComplete={modo === "entrar" ? "current-password" : "new-password"} />
+        {erro && <p className="text-[13px] text-destructive">{erro}</p>}
+        {aviso && <p className="text-[13px] text-success">{aviso}</p>}
+        <button
+          type="submit"
+          disabled={carregando}
+          className="mt-1 rounded-xl bg-primary px-4 py-3 text-[15px] font-medium text-primary-foreground disabled:opacity-60"
+        >
+          {carregando ? "Aguarde…" : modo === "entrar" ? "Entrar" : "Criar conta"}
+        </button>
+      </form>
 
-      <section className="folio mt-6 border border-border p-5 rise">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[20px] tracking-tight">Fluxo de caixa</h2>
-          <span className="text-[11px] text-muted-foreground">Novembro</span>
-        </div>
-        <div className="mt-4 flex items-center justify-between text-[13px] text-muted-foreground">
-          <span>
-            Receitas <span className="font-medium text-foreground">{brl(r.receitas)}</span>
-          </span>
-          <span>
-            Despesas <span className="font-medium text-foreground">{brl(r.despesas)}</span>
-          </span>
-        </div>
-        <div className="mt-3 flex h-24 items-end gap-1.5">
-          {fluxo.map((h, i) => (
-            <div
-              key={i}
-              className={`w-full rounded-t ${i % 3 === 0 ? "bg-foreground/40" : "bg-foreground/85"}`}
-              style={{ height: `${h}%` }}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="font-display text-[22px] tracking-tight">Orçamento</h2>
-        <div className="mt-4 space-y-4">
-          {orcamentos.map((o) => (
-            <div key={o.categoria}>
-              <div className="flex justify-between text-[13px]">
-                <span className="font-medium">{o.categoria}</span>
-                <span className="text-muted-foreground">
-                  {brl(o.usado)} / {brl(o.limite)}
-                </span>
-              </div>
-              <div className="mt-2 h-1.5 rounded-full bg-border">
-                <div
-                  className={`h-full rounded-full ${corEstado[o.estado]}`}
-                  style={{ width: `${Math.min(100, (o.usado / o.limite) * 100)}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Link
-        to="/sole-ai"
-        className="mt-7 flex items-center gap-3 rounded-2xl border border-accent/25 bg-accent-soft/50 px-4 py-3.5"
+      <button
+        type="button"
+        onClick={() => {
+          setModo(modo === "entrar" ? "cadastrar" : "entrar");
+          setErro(null);
+          setAviso(null);
+        }}
+        className="mt-6 text-center text-[14px] text-muted-foreground"
       >
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent font-display text-sm text-accent-foreground">
-          S
+        {modo === "entrar" ? "Ainda não tem conta? " : "Já tem conta? "}
+        <span className="font-medium text-foreground underline underline-offset-4">
+          {modo === "entrar" ? "Cadastre-se" : "Entrar"}
         </span>
-        <span>
-          <span className="eyebrow block text-accent">Insight do SOLE AI</span>
-          <span className="mt-1 block text-[13px] leading-snug">{insights[espaco]}</span>
-        </span>
-      </Link>
-
-      <section className="mt-7">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[22px] tracking-tight">Movimentos</h2>
-          <Link to="/movimentos" className="text-[11px] text-muted-foreground">
-            Ver tudo
-          </Link>
-        </div>
-        <div className="mt-3 divide-y divide-border">
-          {movimentos.slice(0, 4).map((m) => (
-            <div key={m.id} className="flex items-center gap-3 py-3">
-              <span
-                className={`grid size-9 shrink-0 place-items-center rounded-full text-[10px] font-medium ${
-                  m.valor > 0 ? "bg-success/15 text-success" : "bg-secondary"
-                }`}
-              >
-                {m.iniciais}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium">
-                  {m.categoria.split(" · ")[0]} · {m.titulo}
-                </span>
-                <span className="block text-[11px] text-muted-foreground">
-                  {m.quando} · {m.pessoa}
-                </span>
-              </span>
-              <span
-                className={`text-[13px] font-medium ${m.valor > 0 ? "text-success" : ""}`}
-              >
-                {m.valor > 0 ? "+" : "-"}
-                {brl(Math.abs(m.valor))}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-    </AppShell>
+      </button>
+    </main>
   );
 }

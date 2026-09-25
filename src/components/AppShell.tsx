@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { perfil } from "@/lib/sole-data";
 
 const tabs = [
-  { to: "/", label: "Início", glyph: "◱" },
+  { to: "/painel", label: "Início", glyph: "◱" },
   { to: "/movimentos", label: "Movim.", glyph: "≡" },
   { to: "/projetos", label: "Projetos", glyph: "◈" },
   { to: "/metas", label: "Metas", glyph: "◎" },
@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[430px] px-5 pt-7 pb-28">
         <header className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/painel" className="flex items-center gap-3">
             <span className="grid size-10 place-items-center rounded-full bg-primary font-display text-lg leading-none text-primary-foreground">
               S
             </span>
@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             key={tab.to}
             to={tab.to}
-            activeOptions={{ exact: tab.to === "/" }}
+            activeOptions={{ exact: tab.to === "/painel" }}
             className="flex flex-col items-center gap-0.5 px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors"
             activeProps={{ className: "text-foreground" }}
           >

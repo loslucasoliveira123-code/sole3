@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { brl, perfil, resumos } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/mais")({
+export const Route = createFileRoute("/_authenticated/mais")({
   head: () => ({
     meta: [
       { title: "Mais — Patrimônio, cartões e configurações | SOLE3" },
@@ -36,6 +38,8 @@ const modulos = [
 function Mais() {
   const r = resumos.casal;
   const ativos = r.patrimonio + r.investimentos;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return (
     <AppShell>
@@ -68,10 +72,18 @@ function Mais() {
         ))}
       </div>
 
-      <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
-        Esta primeira versão usa dados de demonstração. O próximo passo é ativar contas de usuário,
-        convite do parceiro e o banco de dados para gravar seus lançamentos reais.
-      </p>
+      <button
+        type="button"
+        onClick={async () => {
+          await queryClient.cancelQueries();
+          queryClient.clear();
+          await supabase.auth.signOut();
+          navigate({ to: "/", replace: true });
+        }}
+        className="mt-6 w-full rounded-xl border border-border py-3 text-[14px] font-medium"
+      >
+        Sair da conta
+      </button>
     </AppShell>
   );
 }
