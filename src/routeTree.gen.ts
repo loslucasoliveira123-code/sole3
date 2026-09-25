@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MaisRouteImport } from './routes/mais'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimentosRouteImport } from './routes/movimentos'
 import { Route as ProjetosRouteImport } from './routes/projetos'
@@ -18,6 +19,11 @@ import { Route as SoleAiRouteImport } from './routes/sole-ai'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaisRoute = MaisRouteImport.update({
+  id: '/mais',
+  path: '/mais',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MetasRoute = MetasRouteImport.update({
@@ -43,6 +49,7 @@ const SoleAiRoute = SoleAiRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/mais': typeof MaisRoute
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  fullPaths: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
-  id: '__root__' | '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  to: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  id:
+    | '__root__'
+    | '/'
+    | '/mais'
+    | '/metas'
+    | '/movimentos'
+    | '/projetos'
+    | '/sole-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MaisRoute: typeof MaisRoute
   MetasRoute: typeof MetasRoute
   MovimentosRoute: typeof MovimentosRoute
   ProjetosRoute: typeof ProjetosRoute
@@ -86,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mais': {
+      id: '/mais'
+      path: '/mais'
+      fullPath: '/mais'
+      preLoaderRoute: typeof MaisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metas': {
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MaisRoute: MaisRoute,
   MetasRoute: MetasRoute,
   MovimentosRoute: MovimentosRoute,
   ProjetosRoute: ProjetosRoute,
