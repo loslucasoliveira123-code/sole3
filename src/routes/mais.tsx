@@ -27,7 +27,7 @@ const modulos = [
   { nome: "Investimentos", detalhe: "R$ 182.400 · renda fixa, fundos e cripto" },
   { nome: "Dívidas", detalhe: "R$ 6.890 em 2 contratos" },
   { nome: "Orçamento", detalhe: "Limites por categoria e alertas" },
-  { nome: "Divisão de despesas", detalhe: "Lucas 60% · Marina 40%" },
+  { nome: "Divisão de despesas", detalhe: "Lucas 60% · Queilane 40%" },
   { nome: "Relatórios", detalhe: "Pessoal, casal, projetos e patrimônio" },
   { nome: "Privacidade e permissões", detalhe: "Privado · Compartilhado · Projeto" },
   { nome: "Notificações", detalhe: "Vencimentos, faturas, metas e insights" },

@@ -9,7 +9,7 @@ export const brl = (value: number) =>
 
 export const perfil = {
   nome: "Lucas",
-  parceira: "Marina",
+  parceira: "Queilane",
   iniciais: "LM",
 };
 
@@ -114,7 +114,7 @@ export const movimentos: Movimento[] = [
     categoria: "Alimentação · Supermercado",
     quando: "Hoje, 12:40",
     valor: -128.4,
-    pessoa: "Marina",
+    pessoa: "Queilane",
     iniciais: "AL",
   },
   {
@@ -150,7 +150,7 @@ export const movimentos: Movimento[] = [
     categoria: "Investimento · Renda fixa",
     quando: "27 nov",
     valor: -2000,
-    pessoa: "Marina",
+    pessoa: "Queilane",
     iniciais: "IN",
   },
   {
@@ -168,7 +168,7 @@ export const movimentos: Movimento[] = [
     categoria: "Receita · Projeto",
     quando: "24 nov",
     valor: 6400,
-    pessoa: "Marina",
+    pessoa: "Queilane",
     iniciais: "RE",
   },
 ];
