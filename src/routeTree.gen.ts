@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimentosRouteImport } from './routes/movimentos'
 import { Route as ProjetosRouteImport } from './routes/projetos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetasRoute = MetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MovimentosRoute = MovimentosRouteImport.update({
@@ -31,30 +37,34 @@ const ProjetosRoute = ProjetosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/movimentos' | '/projetos'
+  fullPaths: '/' | '/metas' | '/movimentos' | '/projetos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/movimentos' | '/projetos'
-  id: '__root__' | '/' | '/movimentos' | '/projetos'
+  to: '/' | '/metas' | '/movimentos' | '/projetos'
+  id: '__root__' | '/' | '/metas' | '/movimentos' | '/projetos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MetasRoute: typeof MetasRoute
   MovimentosRoute: typeof MovimentosRoute
   ProjetosRoute: typeof ProjetosRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metas': {
+      id: '/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof MetasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/movimentos': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MetasRoute: MetasRoute,
   MovimentosRoute: MovimentosRoute,
   ProjetosRoute: ProjetosRoute,
 }
