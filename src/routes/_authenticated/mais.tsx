@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { brl, perfil, resumos } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/mais")({
+export const Route = createFileRoute("/_authenticated/mais")({
   head: () => ({
     meta: [
       { title: "Mais — Patrimônio, cartões e configurações | SOLE3" },

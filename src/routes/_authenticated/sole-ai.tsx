@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { responderIA, sugestoesIA } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/sole-ai")({
+export const Route = createFileRoute("/_authenticated/sole-ai")({
   head: () => ({
     meta: [
       { title: "SOLE AI — Assistente financeiro do casal" },

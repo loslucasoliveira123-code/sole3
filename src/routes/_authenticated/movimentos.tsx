@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { brl, movimentos } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/movimentos")({
+export const Route = createFileRoute("/_authenticated/movimentos")({
   head: () => ({
     meta: [
       { title: "Movimentos — SOLE3" },

@@ -12,7 +12,7 @@ import {
   type Espaco,
 } from "@/lib/sole-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
       { title: "SOLE3 — O dinheiro do casal, organizado" },
