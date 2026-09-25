@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimentosRouteImport } from './routes/movimentos'
 import { Route as ProjetosRouteImport } from './routes/projetos'
+import { Route as SoleAiRouteImport } from './routes/sole-ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const ProjetosRoute = ProjetosRouteImport.update({
   path: '/projetos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SoleAiRoute = SoleAiRouteImport.update({
+  id: '/sole-ai',
+  path: '/sole-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/metas': typeof MetasRoute
   '/movimentos': typeof MovimentosRoute
   '/projetos': typeof ProjetosRoute
+  '/sole-ai': typeof SoleAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/metas' | '/movimentos' | '/projetos'
+  fullPaths: '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/metas' | '/movimentos' | '/projetos'
-  id: '__root__' | '/' | '/metas' | '/movimentos' | '/projetos'
+  to: '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  id: '__root__' | '/' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   MetasRoute: typeof MetasRoute
   MovimentosRoute: typeof MovimentosRoute
   ProjetosRoute: typeof ProjetosRoute
+  SoleAiRoute: typeof SoleAiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sole-ai': {
+      id: '/sole-ai'
+      path: '/sole-ai'
+      fullPath: '/sole-ai'
+      preLoaderRoute: typeof SoleAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   MetasRoute: MetasRoute,
   MovimentosRoute: MovimentosRoute,
   ProjetosRoute: ProjetosRoute,
+  SoleAiRoute: SoleAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
