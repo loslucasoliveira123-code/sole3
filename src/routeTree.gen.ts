@@ -9,147 +9,148 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as MaisRouteImport } from './routes/mais'
-import { Route as MetasRouteImport } from './routes/metas'
-import { Route as MovimentosRouteImport } from './routes/movimentos'
-import { Route as ProjetosRouteImport } from './routes/projetos'
-import { Route as SoleAiRouteImport } from './routes/sole-ai'
+import { Route as AuthenticatedMaisRouteImport } from './routes/_authenticated/mais'
+import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMovimentosRouteImport } from './routes/_authenticated/movimentos'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
+import { Route as AuthenticatedSoleAiRouteImport } from './routes/_authenticated/sole-ai'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MaisRoute = MaisRouteImport.update({
-  id: '/mais',
+const AuthenticatedMaisRoute = AuthenticatedMaisRouteImport.update({
+  id: '/_authenticated/mais',
   path: '/mais',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MetasRoute = MetasRouteImport.update({
-  id: '/metas',
+const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
+  id: '/_authenticated/metas',
   path: '/metas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MovimentosRoute = MovimentosRouteImport.update({
-  id: '/movimentos',
+const AuthenticatedMovimentosRoute = AuthenticatedMovimentosRouteImport.update({
+  id: '/_authenticated/movimentos',
   path: '/movimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjetosRoute = ProjetosRouteImport.update({
-  id: '/projetos',
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/_authenticated/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
+  id: '/_authenticated/projetos',
   path: '/projetos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SoleAiRoute = SoleAiRouteImport.update({
-  id: '/sole-ai',
+const AuthenticatedSoleAiRoute = AuthenticatedSoleAiRouteImport.update({
+  id: '/_authenticated/sole-ai',
   path: '/sole-ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/mais': typeof AuthenticatedMaisRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/movimentos': typeof AuthenticatedMovimentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/mais': typeof AuthenticatedMaisRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/movimentos': typeof AuthenticatedMovimentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/mais': typeof MaisRoute
-  '/metas': typeof MetasRoute
-  '/movimentos': typeof MovimentosRoute
-  '/projetos': typeof ProjetosRoute
-  '/sole-ai': typeof SoleAiRoute
+  '/_authenticated/mais': typeof AuthenticatedMaisRoute
+  '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/movimentos': typeof AuthenticatedMovimentosRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
+  '/_authenticated/sole-ai': typeof AuthenticatedSoleAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  fullPaths:
+    '/mais' | '/metas' | '/movimentos' | '/painel' | '/projetos' | '/sole-ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/mais' | '/metas' | '/movimentos' | '/projetos' | '/sole-ai'
+  to: '/mais' | '/metas' | '/movimentos' | '/painel' | '/projetos' | '/sole-ai'
   id:
     | '__root__'
-    | '/'
-    | '/mais'
-    | '/metas'
-    | '/movimentos'
-    | '/projetos'
-    | '/sole-ai'
+    | '/_authenticated/mais'
+    | '/_authenticated/metas'
+    | '/_authenticated/movimentos'
+    | '/_authenticated/painel'
+    | '/_authenticated/projetos'
+    | '/_authenticated/sole-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  MaisRoute: typeof MaisRoute
-  MetasRoute: typeof MetasRoute
-  MovimentosRoute: typeof MovimentosRoute
-  ProjetosRoute: typeof ProjetosRoute
-  SoleAiRoute: typeof SoleAiRoute
+  AuthenticatedMaisRoute: typeof AuthenticatedMaisRoute
+  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMovimentosRoute: typeof AuthenticatedMovimentosRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRoute
+  AuthenticatedSoleAiRoute: typeof AuthenticatedSoleAiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mais': {
-      id: '/mais'
+    '/_authenticated/mais': {
+      id: '/_authenticated/mais'
       path: '/mais'
       fullPath: '/mais'
-      preLoaderRoute: typeof MaisRouteImport
+      preLoaderRoute: typeof AuthenticatedMaisRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/metas': {
-      id: '/metas'
+    '/_authenticated/metas': {
+      id: '/_authenticated/metas'
       path: '/metas'
       fullPath: '/metas'
-      preLoaderRoute: typeof MetasRouteImport
+      preLoaderRoute: typeof AuthenticatedMetasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/movimentos': {
-      id: '/movimentos'
+    '/_authenticated/movimentos': {
+      id: '/_authenticated/movimentos'
       path: '/movimentos'
       fullPath: '/movimentos'
-      preLoaderRoute: typeof MovimentosRouteImport
+      preLoaderRoute: typeof AuthenticatedMovimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projetos': {
-      id: '/projetos'
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/projetos': {
+      id: '/_authenticated/projetos'
       path: '/projetos'
       fullPath: '/projetos'
-      preLoaderRoute: typeof ProjetosRouteImport
+      preLoaderRoute: typeof AuthenticatedProjetosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sole-ai': {
-      id: '/sole-ai'
+    '/_authenticated/sole-ai': {
+      id: '/_authenticated/sole-ai'
       path: '/sole-ai'
       fullPath: '/sole-ai'
-      preLoaderRoute: typeof SoleAiRouteImport
+      preLoaderRoute: typeof AuthenticatedSoleAiRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  MaisRoute: MaisRoute,
-  MetasRoute: MetasRoute,
-  MovimentosRoute: MovimentosRoute,
-  ProjetosRoute: ProjetosRoute,
-  SoleAiRoute: SoleAiRoute,
+  AuthenticatedMaisRoute: AuthenticatedMaisRoute,
+  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMovimentosRoute: AuthenticatedMovimentosRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedProjetosRoute: AuthenticatedProjetosRoute,
+  AuthenticatedSoleAiRoute: AuthenticatedSoleAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
