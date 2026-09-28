@@ -146,13 +146,13 @@ export function useSalvar<V>(chave: string, fn: (v: V) => PromiseLike<{ error: u
 export const mesAtual = () => new Date().toISOString().slice(0, 7);
 
 export function dataCurta(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = iso.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
 export function mesLongo(iso: string | null) {
   if (!iso) return "Sem prazo";
-  const [y, m] = iso.split("-").map(Number);
+  const [y = 0, m = 1] = iso.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
 }
 
