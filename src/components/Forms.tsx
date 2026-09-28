@@ -98,7 +98,7 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
         onSubmit={async (e) => {
           e.preventDefault();
           const p = lancSchema.safeParse({ titulo, valor: parseValor(valor), data });
-          if (!p.success) return toast.error(p.error.issues[0].message);
+          if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
           try {
             await salvar.mutateAsync({
               casal_id: casal!.id,
@@ -202,7 +202,7 @@ export function NovoProjeto({ open, onClose }: { open: boolean; onClose: () => v
         onSubmit={async (e) => {
           e.preventDefault();
           const p = projSchema.safeParse({ nome, descricao, orcamento: parseValor(orcamento || "0") });
-          if (!p.success) return toast.error(p.error.issues[0].message);
+          if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
           try {
             await salvar.mutateAsync({ casal_id: casal!.id, ...p.data, status, prazo: prazo ? `${prazo}-01` : null });
             toast.success("Projeto criado");
@@ -269,7 +269,7 @@ export function NovaMeta({ open, onClose }: { open: boolean; onClose: () => void
             atual: parseValor(atual || "0"),
             aporte: parseValor(aporte || "0"),
           });
-          if (!p.success) return toast.error(p.error.issues[0].message);
+          if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
           try {
             await salvar.mutateAsync({ casal_id: casal!.id, ...p.data, prazo: prazo ? `${prazo}-01` : null });
             toast.success("Meta criada");
@@ -319,7 +319,7 @@ export function Aportar({ meta, onClose }: { meta: Meta | null; onClose: () => v
         onSubmit={async (e) => {
           e.preventDefault();
           const v = parseValor(valor);
-          if (!meta || !(v > 0)) return toast.error("Informe um valor maior que zero");
+          if (!meta || !(v > 0)) { toast.error("Informe um valor maior que zero"); return; }
           try {
             await salvar.mutateAsync({ id: meta.id, atual: meta.atual + v });
             toast.success("Valor adicionado");
