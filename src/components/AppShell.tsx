@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { perfil } from "@/lib/sole-data";
+import logo from "@/assets/sole3-logo.png.asset.json";
 
 const tabs = [
   { to: "/painel", label: "Início", glyph: "◱" },
@@ -17,9 +18,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto max-w-[430px] px-5 pt-7 pb-28">
         <header className="flex items-center justify-between">
           <Link to="/painel" className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-full bg-primary font-display text-lg leading-none text-primary-foreground">
-              S
-            </span>
+            <img
+              src={logo.url}
+              alt="SOLE3"
+              className="size-12 rounded-xl bg-card object-cover mix-blend-multiply"
+            />
             <span>
               <span className="eyebrow block text-muted-foreground">SOLE3</span>
               <span className="block text-[13px] font-medium leading-tight">
