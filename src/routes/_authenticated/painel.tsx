@@ -33,7 +33,6 @@ export const Route = createFileRoute("/_authenticated/painel")({
 });
 
 const espacos: { id: Espaco; label: string }[] = [
-  { id: "pessoal", label: "Pessoal" },
   { id: "casal", label: "Casal" },
   { id: "projetos", label: "Projetos" },
 ];
