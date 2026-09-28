@@ -14,6 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
+      casais: {
+        Row: {
+          created_at: string
+          criado_por: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por: string
+          id?: string
+          nome?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      casal_membros: {
+        Row: {
+          casal_id: string
+          created_at: string
+          nome: string
+          user_id: string
+        }
+        Insert: {
+          casal_id: string
+          created_at?: string
+          nome?: string
+          user_id: string
+        }
+        Update: {
+          casal_id?: string
+          created_at?: string
+          nome?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casal_membros_casal_id_fkey"
+            columns: ["casal_id"]
+            isOneToOne: false
+            referencedRelation: "casais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      convites: {
+        Row: {
+          casal_id: string
+          codigo: string
+          created_at: string
+          criado_por: string
+          id: string
+          usado_em: string | null
+          usado_por: string | null
+        }
+        Insert: {
+          casal_id: string
+          codigo?: string
+          created_at?: string
+          criado_por: string
+          id?: string
+          usado_em?: string | null
+          usado_por?: string | null
+        }
+        Update: {
+          casal_id?: string
+          codigo?: string
+          created_at?: string
+          criado_por?: string
+          id?: string
+          usado_em?: string | null
+          usado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_casal_id_fkey"
+            columns: ["casal_id"]
+            isOneToOne: false
+            referencedRelation: "casais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lancamentos: {
+        Row: {
+          casal_id: string
+          categoria: string
+          created_at: string
+          criado_por: string
+          data: string
+          id: string
+          pagador: string
+          projeto_id: string | null
+          tipo: string
+          titulo: string
+          valor: number
+        }
+        Insert: {
+          casal_id: string
+          categoria?: string
+          created_at?: string
+          criado_por?: string
+          data?: string
+          id?: string
+          pagador?: string
+          projeto_id?: string | null
+          tipo: string
+          titulo: string
+          valor: number
+        }
+        Update: {
+          casal_id?: string
+          categoria?: string
+          created_at?: string
+          criado_por?: string
+          data?: string
+          id?: string
+          pagador?: string
+          projeto_id?: string | null
+          tipo?: string
+          titulo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_casal_id_fkey"
+            columns: ["casal_id"]
+            isOneToOne: false
+            referencedRelation: "casais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metas: {
+        Row: {
+          aporte: number
+          atual: number
+          casal_id: string
+          created_at: string
+          id: string
+          nome: string
+          objetivo: number
+          prazo: string | null
+        }
+        Insert: {
+          aporte?: number
+          atual?: number
+          casal_id: string
+          created_at?: string
+          id?: string
+          nome: string
+          objetivo: number
+          prazo?: string | null
+        }
+        Update: {
+          aporte?: number
+          atual?: number
+          casal_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          objetivo?: number
+          prazo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_casal_id_fkey"
+            columns: ["casal_id"]
+            isOneToOne: false
+            referencedRelation: "casais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -38,12 +224,55 @@ export type Database = {
         }
         Relationships: []
       }
+      projetos: {
+        Row: {
+          casal_id: string
+          created_at: string
+          descricao: string
+          id: string
+          nome: string
+          orcamento: number
+          prazo: string | null
+          status: string
+        }
+        Insert: {
+          casal_id: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          nome: string
+          orcamento?: number
+          prazo?: string | null
+          status?: string
+        }
+        Update: {
+          casal_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          nome?: string
+          orcamento?: number
+          prazo?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projetos_casal_id_fkey"
+            columns: ["casal_id"]
+            isOneToOne: false
+            referencedRelation: "casais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      aceitar_convite: { Args: { _codigo: string }; Returns: string }
+      is_membro: { Args: { _casal: string }; Returns: boolean }
+      meu_casal: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

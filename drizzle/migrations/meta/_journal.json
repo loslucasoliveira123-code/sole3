@@ -8,6 +8,13 @@
       "when": 1790352405650,
       "tag": "0000_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790613557052,
+      "tag": "0001_casal_financas",
+      "breakpoints": true
     }
   ]
 }
