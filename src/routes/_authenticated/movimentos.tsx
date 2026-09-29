@@ -4,7 +4,7 @@ import { AppShell, PageTitle } from "@/components/AppShell";
 import { NovoLancamento, Vazio } from "@/components/Forms";
 import { brl } from "@/lib/sole-data";
 import { useCasal, useLancamentos } from "@/lib/casal";
-import { ListaLanc } from "./painel";
+import { ListaLanc } from "@/components/ListaLanc";
 
 export const Route = createFileRoute("/_authenticated/movimentos")({
   head: () => ({
