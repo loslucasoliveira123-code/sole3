@@ -1,3 +1,4 @@
+import logo2 from "@/assets/sole3-logo-2.png.asset.json";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,7 +97,7 @@ function AuthPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
       <div className="rise">
-        <p className="text-[12px] uppercase tracking-[0.2em] text-muted-foreground">SOLE3</p>
+        <img src={logo2.url} alt="SOLE3" className="mx-auto size-40 object-contain mix-blend-multiply" />
         <h1 className="mt-3 font-display text-[40px] leading-[1.05] tracking-tight text-balance">
           {modo === "entrar" ? "Bem-vindo de volta." : "O dinheiro do casal, organizado."}
         </h1>

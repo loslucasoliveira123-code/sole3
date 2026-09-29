@@ -18,6 +18,7 @@ import { Route as AuthenticatedMovimentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedSoleAiRouteImport } from './routes/_authenticated/sole-ai'
+import { Route as ConviteCodigoRouteImport } from './routes/convite.$codigo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -63,6 +64,11 @@ const AuthenticatedSoleAiRoute = AuthenticatedSoleAiRouteImport.update({
   path: '/sole-ai',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ConviteCodigoRoute = ConviteCodigoRouteImport.update({
+  id: '/convite/$codigo',
+  path: '/convite/$codigo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/projetos': typeof AuthenticatedProjetosRoute
   '/sole-ai': typeof AuthenticatedSoleAiRoute
+  '/convite/$codigo': typeof ConviteCodigoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/projetos': typeof AuthenticatedProjetosRoute
   '/sole-ai': typeof AuthenticatedSoleAiRoute
+  '/convite/$codigo': typeof ConviteCodigoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
   '/_authenticated/sole-ai': typeof AuthenticatedSoleAiRoute
+  '/convite/$codigo': typeof ConviteCodigoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/projetos'
     | '/sole-ai'
+    | '/convite/$codigo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/projetos'
     | '/sole-ai'
+    | '/convite/$codigo'
   id:
     | '__root__'
     | '/'
@@ -128,12 +139,14 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/projetos'
     | '/_authenticated/sole-ai'
+    | '/convite/$codigo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ConviteCodigoRoute: typeof ConviteCodigoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSoleAiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/convite/$codigo': {
+      id: '/convite/$codigo'
+      path: '/convite/$codigo'
+      fullPath: '/convite/$codigo'
+      preLoaderRoute: typeof ConviteCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -229,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ConviteCodigoRoute: ConviteCodigoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
