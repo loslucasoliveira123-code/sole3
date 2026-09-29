@@ -1,227 +1,147 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import {
-  brl,
-  fluxo,
-  insights,
-  movimentos,
-  orcamentos,
-  perfil,
-  resumos,
-  type Espaco,
-} from "@/lib/sole-data";
+import { NovoLancamento, Vazio } from "@/components/Forms";
+import { brl } from "@/lib/sole-data";
+import { dataCurta, gastoProjeto, nomeCasal, useCasal, useLancamentos, useMetas, useProjetos } from "@/lib/casal";
+import { calcularTotais } from "@/lib/totais";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "SOLE3 — O dinheiro do casal, organizado" },
-      {
-        name: "description",
-        content:
-          "Painel financeiro do casal: patrimônio, SOLE Score, fluxo de caixa, orçamento e projetos em um só lugar.",
-      },
-      { property: "og:title", content: "SOLE3 — O dinheiro do casal, organizado" },
-      {
-        property: "og:description",
-        content:
-          "Gestão financeira pessoal, do casal e de projetos com assistente inteligente.",
-      },
+      { title: "Painel — SOLE3" },
+      { name: "description", content: "Patrimônio, saldo, orçamento e SOLE Score do casal calculados a partir dos seus lançamentos." },
+      { property: "og:title", content: "Painel — SOLE3" },
+      { property: "og:description", content: "O dinheiro do casal, organizado." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,
 });
 
-const espacos: { id: Espaco; label: string }[] = [
-  { id: "casal", label: "Casal" },
-  { id: "projetos", label: "Projetos" },
-];
-
-const corEstado = {
-  ok: "bg-success",
-  atencao: "bg-warning",
-  excedido: "bg-destructive",
-} as const;
-
 function Dashboard() {
-  const [espaco, setEspaco] = useState<Espaco>("casal");
-  const r = resumos[espaco];
+  const [espaco, setEspaco] = useState<"casal" | "projetos">("casal");
+  const [novo, setNovo] = useState(false);
+  const { data: casal } = useCasal();
+  const { data: lanc = [], isLoading } = useLancamentos(casal?.id);
+  const { data: metas = [] } = useMetas(casal?.id);
+  const { data: projetos = [] } = useProjetos(casal?.id);
+  const t = calcularTotais(lanc, metas, projetos);
+  const mes = new Date().toLocaleDateString("pt-BR", { month: "long" });
 
   return (
     <AppShell>
       <div className="mt-7 rise">
-        <p className="text-[13px] text-muted-foreground">Bom dia</p>
-        <h1 className="mt-1 font-display text-[38px] leading-none tracking-tight text-balance">
-          {espaco === "pessoal" ? perfil.nome : `${perfil.nome} & ${perfil.parceira}`}
-        </h1>
+        <p className="text-[13px] text-muted-foreground">Olá</p>
+        <h1 className="mt-1 font-display text-[38px] leading-none tracking-tight text-balance">{nomeCasal(casal) || "…"}</h1>
       </div>
 
-      <div className="-mx-5 mt-5 flex gap-2 overflow-x-auto px-5 pb-1">
-        {espacos.map((e) => (
-          <button
-            key={e.id}
-            type="button"
-            onClick={() => setEspaco(e.id)}
-            className={`shrink-0 rounded-[14px] px-4 py-2.5 text-[13px] font-medium transition-all ${
-              espaco === e.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:-translate-y-0.5"
-            }`}
-          >
-            {e.label}
+      <div className="-mx-5 mt-5 flex gap-2 px-5">
+        {(["casal", "projetos"] as const).map((e) => (
+          <button key={e} type="button" onClick={() => setEspaco(e)}
+            className={`rounded-[14px] px-4 py-2.5 text-[13px] font-medium ${espaco === e ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+            {e === "casal" ? "Casal" : "Projetos"}
           </button>
         ))}
       </div>
 
-      <section className="folio mt-5 bg-primary px-6 py-6 text-primary-foreground rise">
-        <div className="flex items-start justify-between gap-3">
-          <div>
+      {!isLoading && casal && lanc.length === 0 && metas.length === 0 && projetos.length === 0 ? (
+        <>
+          <Vazio titulo="Adicione seu primeiro lançamento" texto="Registre uma receita ou despesa e o painel calcula patrimônio, saldo e SOLE Score automaticamente." acao="+ Novo lançamento" onAcao={() => setNovo(true)} />
+          {casal.membros.length < 2 && (
+            <Link to="/mais" className="mt-4 block text-center text-[13px] text-accent underline">Convidar minha parceira</Link>
+          )}
+        </>
+      ) : espaco === "projetos" ? (
+        <section className="mt-5 space-y-4">
+          {projetos.length === 0 && <p className="text-[13px] text-muted-foreground">Nenhum projeto ainda. <Link to="/projetos" className="text-accent underline">Criar projeto</Link></p>}
+          {projetos.map((p) => {
+            const g = gastoProjeto(lanc, p.id);
+            const pct = p.orcamento > 0 ? (g.gasto / p.orcamento) * 100 : 0;
+            return (
+              <div key={p.id} className="folio border border-border p-5">
+                <div className="flex justify-between text-[14px]"><span className="font-medium">{p.nome}</span><span className="text-muted-foreground">{p.status}</span></div>
+                <p className="mt-2 text-[13px] text-muted-foreground">{brl(g.gasto)} de {brl(p.orcamento)}</p>
+                <div className="mt-2 h-1.5 rounded-full bg-border"><div className={`h-full rounded-full ${pct > 100 ? "bg-destructive" : pct > 80 ? "bg-warning" : "bg-success"}`} style={{ width: `${Math.min(100, pct)}%` }} /></div>
+              </div>
+            );
+          })}
+        </section>
+      ) : (
+        <>
+          <section className="folio mt-5 bg-primary px-6 py-6 text-primary-foreground rise">
             <p className="eyebrow text-primary-foreground/55">Patrimônio</p>
-            <p className="mt-2 font-display text-[44px] leading-none tracking-tight">
-              {brl(r.patrimonio)}
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-foreground">
-            {r.variacao}
-          </span>
-        </div>
-        <div className="mt-5 flex gap-6 border-t border-primary-foreground/15 pt-4 text-[13px]">
-          <div>
-            <p className="text-primary-foreground/55">Saldo</p>
-            <p className="mt-0.5 font-medium">{brl(r.saldo)}</p>
-          </div>
-          <div>
-            <p className="text-primary-foreground/55">Economia</p>
-            <p className="mt-0.5 font-medium">{brl(r.economia)}</p>
-          </div>
-          <div>
-            <p className="text-primary-foreground/55">Dívidas</p>
-            <p className="mt-0.5 font-medium">{brl(r.dividas)}</p>
-          </div>
-        </div>
-      </section>
+            <p className="mt-2 font-display text-[44px] leading-none tracking-tight">{brl(t.patrimonio)}</p>
+            <div className="mt-5 flex gap-6 border-t border-primary-foreground/15 pt-4 text-[13px]">
+              <div><p className="text-primary-foreground/55">Saldo</p><p className="mt-0.5 font-medium">{brl(t.saldo)}</p></div>
+              <div><p className="text-primary-foreground/55">Economia do mês</p><p className="mt-0.5 font-medium">{brl(t.economia)}</p></div>
+              <div><p className="text-primary-foreground/55">Em metas</p><p className="mt-0.5 font-medium">{brl(t.guardado)}</p></div>
+            </div>
+          </section>
 
-      <section className="mt-6">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[22px] tracking-tight">SOLE Score</h2>
-          <span className="text-[11px] text-muted-foreground">Atualizado hoje</span>
-        </div>
-        <div className="folio mt-4 flex items-center gap-6 border border-border px-6 py-6">
-          <div className="relative size-[134px] shrink-0">
-            <div
-              className="size-[134px] rounded-full"
-              style={{
-                background: `conic-gradient(var(--accent) 0 ${r.score}%, var(--border) ${r.score}% 100%)`,
-              }}
-            />
-            <div className="absolute inset-[14px] grid place-items-center rounded-full bg-background text-center">
-              <div>
-                <p className="font-display text-[42px] leading-none tracking-tight">{r.score}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">de 100</p>
+          <section className="mt-6">
+            <h2 className="font-display text-[22px] tracking-tight">SOLE Score</h2>
+            <div className="folio mt-4 flex items-center gap-6 border border-border px-6 py-6">
+              <div className="relative size-[134px] shrink-0">
+                <div className="size-[134px] rounded-full" style={{ background: `conic-gradient(var(--accent) 0 ${t.score}%, var(--border) ${t.score}% 100%)` }} />
+                <div className="absolute inset-[14px] grid place-items-center rounded-full bg-background text-center">
+                  <div><p className="font-display text-[42px] leading-none tracking-tight">{t.score}</p><p className="mt-1 text-[11px] text-muted-foreground">de 100</p></div>
+                </div>
+              </div>
+              <div className="text-[13px] leading-relaxed text-muted-foreground">
+                <p className="font-medium text-foreground">{t.scoreTitulo}</p>
+                <p className="mt-2">{t.scoreTexto}</p>
               </div>
             </div>
-          </div>
-          <div className="text-[13px] leading-relaxed text-muted-foreground">
-            <p className="font-medium text-foreground">{r.scoreTitulo}</p>
-            <p className="mt-2">{r.scoreTexto}</p>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section className="folio mt-6 border border-border p-5 rise">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[20px] tracking-tight">Fluxo de caixa</h2>
-          <span className="text-[11px] text-muted-foreground">Novembro</span>
-        </div>
-        <div className="mt-4 flex items-center justify-between text-[13px] text-muted-foreground">
-          <span>
-            Receitas <span className="font-medium text-foreground">{brl(r.receitas)}</span>
-          </span>
-          <span>
-            Despesas <span className="font-medium text-foreground">{brl(r.despesas)}</span>
-          </span>
-        </div>
-        <div className="mt-3 flex h-24 items-end gap-1.5">
-          {fluxo.map((h, i) => (
-            <div
-              key={i}
-              className={`w-full rounded-t ${i % 3 === 0 ? "bg-foreground/40" : "bg-foreground/85"}`}
-              style={{ height: `${h}%` }}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="font-display text-[22px] tracking-tight">Orçamento</h2>
-        <div className="mt-4 space-y-4">
-          {orcamentos.map((o) => (
-            <div key={o.categoria}>
-              <div className="flex justify-between text-[13px]">
-                <span className="font-medium">{o.categoria}</span>
-                <span className="text-muted-foreground">
-                  {brl(o.usado)} / {brl(o.limite)}
-                </span>
-              </div>
-              <div className="mt-2 h-1.5 rounded-full bg-border">
-                <div
-                  className={`h-full rounded-full ${corEstado[o.estado]}`}
-                  style={{ width: `${Math.min(100, (o.usado / o.limite) * 100)}%` }}
-                />
-              </div>
+          <section className="folio mt-6 border border-border p-5">
+            <div className="flex items-baseline justify-between"><h2 className="font-display text-[20px] tracking-tight">Fluxo do mês</h2><span className="text-[11px] capitalize text-muted-foreground">{mes}</span></div>
+            <div className="mt-4 flex justify-between text-[13px] text-muted-foreground">
+              <span>Receitas <span className="font-medium text-success">{brl(t.recMes)}</span></span>
+              <span>Despesas <span className="font-medium text-foreground">{brl(t.despMes)}</span></span>
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
 
-      <Link
-        to="/sole-ai"
-        className="mt-7 flex items-center gap-3 rounded-2xl border border-accent/25 bg-accent-soft/50 px-4 py-3.5"
-      >
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent font-display text-sm text-accent-foreground">
-          S
-        </span>
-        <span>
-          <span className="eyebrow block text-accent">Insight do SOLE AI</span>
-          <span className="mt-1 block text-[13px] leading-snug">{insights[espaco]}</span>
-        </span>
-      </Link>
-
-      <section className="mt-7">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[22px] tracking-tight">Movimentos</h2>
-          <Link to="/movimentos" className="text-[11px] text-muted-foreground">
-            Ver tudo
-          </Link>
-        </div>
-        <div className="mt-3 divide-y divide-border">
-          {movimentos.slice(0, 4).map((m) => (
-            <div key={m.id} className="flex items-center gap-3 py-3">
-              <span
-                className={`grid size-9 shrink-0 place-items-center rounded-full text-[10px] font-medium ${
-                  m.valor > 0 ? "bg-success/15 text-success" : "bg-secondary"
-                }`}
-              >
-                {m.iniciais}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium">
-                  {m.categoria.split(" · ")[0]} · {m.titulo}
-                </span>
-                <span className="block text-[11px] text-muted-foreground">
-                  {m.quando} · {m.pessoa}
-                </span>
-              </span>
-              <span
-                className={`text-[13px] font-medium ${m.valor > 0 ? "text-success" : ""}`}
-              >
-                {m.valor > 0 ? "+" : "-"}
-                {brl(Math.abs(m.valor))}
-              </span>
+          <section className="mt-6">
+            <h2 className="font-display text-[22px] tracking-tight">Orçamento do mês</h2>
+            <p className="mt-1 text-[12px] text-muted-foreground">Gastos por categoria, em relação às receitas do mês.</p>
+            <div className="mt-4 space-y-4">
+              {t.orcamento.length === 0 && <p className="text-[13px] text-muted-foreground">Nenhuma despesa neste mês.</p>}
+              {t.orcamento.map((o) => (
+                <div key={o.categoria}>
+                  <div className="flex justify-between text-[13px]"><span className="font-medium">{o.categoria}</span><span className="text-muted-foreground">{brl(o.usado)} · {Math.round(o.pct)}%</span></div>
+                  <div className="mt-2 h-1.5 rounded-full bg-border"><div className={`h-full rounded-full ${o.pct > 40 ? "bg-destructive" : o.pct > 25 ? "bg-warning" : "bg-success"}`} style={{ width: `${Math.min(100, o.pct)}%` }} /></div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+
+          <section className="mt-7">
+            <div className="flex items-baseline justify-between"><h2 className="font-display text-[22px] tracking-tight">Movimentos</h2><Link to="/movimentos" className="text-[11px] text-muted-foreground">Ver tudo</Link></div>
+            <ListaLanc itens={lanc.slice(0, 4)} />
+          </section>
+        </>
+      )}
+      <NovoLancamento open={novo} onClose={() => setNovo(false)} />
     </AppShell>
+  );
+}
+
+export function ListaLanc({ itens }: { itens: { id: string; tipo: string; titulo: string; categoria: string; valor: number; data: string; pagador: string }[] }) {
+  return (
+    <div className="mt-3 divide-y divide-border">
+      {itens.map((m) => (
+        <div key={m.id} className="flex items-center gap-3 py-3">
+          <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[10px] font-medium ${m.tipo === "receita" ? "bg-success/15 text-success" : "bg-secondary"}`}>{m.pagador.slice(0, 2).toUpperCase()}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium">{m.categoria} · {m.titulo}</span>
+            <span className="block text-[11px] text-muted-foreground">{dataCurta(m.data)} · {m.pagador}</span>
+          </span>
+          <span className={`text-[13px] font-medium ${m.tipo === "receita" ? "text-success" : ""}`}>{m.tipo === "receita" ? "+" : "-"}{brl(m.valor)}</span>
+        </div>
+      ))}
+    </div>
   );
 }
