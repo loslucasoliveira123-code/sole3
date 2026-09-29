@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         type="button"
         onClick={() => setNovo(true)}
         disabled={!casal}
-        className="fixed bottom-20 left-1/2 z-40 ml-[130px] rounded-full bg-accent px-4 py-3 text-[13px] font-medium text-accent-foreground shadow-lg"
+        className="fixed bottom-20 right-4 z-40 sm:right-[calc(50%-199px)] rounded-full bg-accent px-4 py-3 text-[13px] font-medium text-accent-foreground shadow-lg"
       >
         + Novo lançamento
       </button>
