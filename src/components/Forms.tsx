@@ -39,16 +39,16 @@ export function Sheet({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/40" onClick={onClose}>
       <div
         className="rise max-h-[90vh] w-full max-w-[430px] overflow-y-auto rounded-t-3xl bg-background px-5 pt-5 pb-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-[24px] tracking-tight">{title}</h2>
-          <button type="button" onClick={onClose} className="text-[13px] text-muted-foreground">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} className="text-[13px] text-muted-foreground">
             Fechar
-          </button>
+          </Button>
         </div>
         <div className="mt-4 space-y-3">{children}</div>
       </div>
@@ -70,13 +70,13 @@ export function Campo({ label, children }: { label: string; children: ReactNode 
 
 function Botao({ loading, children }: { loading?: boolean; children: ReactNode }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={loading}
-      className="mt-2 w-full rounded-2xl bg-primary py-3.5 text-[14px] font-medium text-primary-foreground disabled:opacity-60"
+      className="mt-2 h-auto w-full rounded-2xl py-3.5 text-[14px]"
     >
       {loading ? "Salvando..." : children}
-    </button>
+    </Button>
   );
 }
 
@@ -176,19 +176,20 @@ export function NovoLancamento({
       >
         <div className="grid grid-cols-2 gap-2">
           {(["despesa", "receita"] as const).map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
+              variant="ghost"
               onClick={() => {
                 setTipo(t);
                 setCategoria("Outros");
               }}
-              className={`rounded-2xl py-2.5 text-[13px] font-medium ${
+              className={`h-auto rounded-2xl py-2.5 text-[13px] font-medium ${
                 tipo === t ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
               }`}
             >
               {t === "despesa" ? "Despesa" : "Receita"}
-            </button>
+            </Button>
           ))}
         </div>
         <Campo label="Descrição">
@@ -434,9 +435,9 @@ export function Vazio({ titulo, texto, acao, onAcao }: { titulo: string; texto: 
     <div className="folio mt-6 border border-dashed border-border px-6 py-10 text-center">
       <p className="font-display text-[22px] tracking-tight">{titulo}</p>
       <p className="mx-auto mt-2 max-w-[280px] text-[13px] text-muted-foreground">{texto}</p>
-      <button type="button" onClick={onAcao} className="mt-5 rounded-2xl bg-primary px-5 py-3 text-[13px] font-medium text-primary-foreground">
+      <Button type="button" onClick={onAcao} className="mt-5 h-auto rounded-2xl px-5 py-3 text-[13px]">
         {acao}
-      </button>
+      </Button>
     </div>
   );
 }

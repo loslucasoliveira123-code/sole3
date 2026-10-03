@@ -5,6 +5,7 @@ import { NovoLancamento, Vazio } from "@/components/Forms";
 import { brl } from "@/lib/sole-data";
 import { useCasal, useLancamentos, type Lancamento } from "@/lib/casal";
 import { ListaLanc } from "@/components/ListaLanc";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/movimentos")({
   head: () => ({
@@ -55,7 +56,7 @@ function Movimentos() {
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar" className="mt-4 w-full rounded-2xl border border-border bg-secondary px-4 py-3 text-[14px] outline-none" />
           <div className="mt-3 flex gap-2">
             {filtros.map((f) => (
-              <button key={f} type="button" onClick={() => setFiltro(f)} className={`rounded-[14px] px-4 py-2 text-[13px] font-medium ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>{f}</button>
+              <Button key={f} type="button" variant="ghost" onClick={() => setFiltro(f)} className={`h-auto rounded-[14px] px-4 py-2 text-[13px] font-medium ${filtro === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>{f}</Button>
             ))}
           </div>
           <ListaLanc itens={lista} onSelect={setSelecionado} />
