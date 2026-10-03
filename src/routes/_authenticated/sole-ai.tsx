@@ -92,6 +92,12 @@ async function transcrever(file: File) {
   return resultado;
 }
 
+function extrairComandoDeVoz(transcricao: string) {
+  const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const inicio = normalizada.match(/^\s*(?:sole|soli|so)[,.]?\s+registre\b[\s,:-]*/i);
+  return inicio ? transcricao.slice(inicio[0].length).trim() : null;
+}
+
 function SoleAI() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState("");
@@ -149,8 +155,8 @@ function SoleAI() {
     setTranscrevendo(true);
     try {
       const transcricao = await transcrever(await atual.stop());
-      const comando = transcricao.replace(/^\s*sole[,.]?\s+registre\b[\s,:-]*/i, "").trim();
-      if (comando === transcricao.trim() || !comando) {
+      const comando = extrairComandoDeVoz(transcricao);
+      if (!comando) {
         setErroVoz('Comece dizendo “Sole registre” e depois informe o lançamento.');
         return;
       }

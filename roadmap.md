@@ -6,4 +6,4 @@
 - [x] Confirmar os dados inferidos antes de criar o lançamento real.
 - [x] Usar o usuário atual como pagador/recebedor padrão.
 - [x] Validar os fluxos no desktop e no celular.
-- [ ] Permitir registrar pela SOLE AI por voz, exigindo o início “Sole registre” e mantendo a confirmação.
+- [x] Permitir registrar pela SOLE AI por voz, exigindo o início “Sole registre” e mantendo a confirmação.
