@@ -73,10 +73,10 @@ export function interpretarComandoLancamento(comando: string, casal?: Casal): Ra
   const valor = valorDoComando(texto);
   if (!valor || !casal) return null;
   const tipo: Lancamento["tipo"] = despesa ? "despesa" : "receita";
-  const membros = casal.membros.map((m) => m.nome.split(" ")[0]).filter(Boolean);
+  const membros = casal.membros.map((m) => m.nome.split(" ")[0] ?? "").filter((nome) => nome.length > 0);
   const mencionado = membros.find((nome) => texto.includes(normalizar(nome)));
   const apelidoQuei = texto.includes("quei") ? membros.find((nome) => normalizar(nome).startsWith("quei")) ?? "Quei" : null;
-  const eu = casal.membros.find((m) => m.user_id === casal.meuId)?.nome.split(" ")[0] || "Eu";
+  const eu = casal.membros.find((m) => m.user_id === casal.meuId)?.nome.split(" ")[0] ?? "Eu";
   const pagador = texto.includes("casal") ? "Casal" : mencionado ?? apelidoQuei ?? eu;
 
   return {

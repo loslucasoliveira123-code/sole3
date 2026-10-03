@@ -22,6 +22,8 @@ export const Route = createFileRoute("/_authenticated/sole-ai")({
         property: "og:description",
         content: "Seu dinheiro. Sua visão. Suas decisões.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: SoleAI,
