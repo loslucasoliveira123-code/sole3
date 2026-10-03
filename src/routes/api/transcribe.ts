@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/transcribe")({
           auth: { persistSession: false, autoRefreshToken: false },
         });
         const { data, error } = await authClient.auth.getClaims(token);
-        if (error || !data.claims?.sub) return errorResponse("Sua sessão expirou. Entre novamente.", 401);
+        if (error || !data?.claims?.sub) return errorResponse("Sua sessão expirou. Entre novamente.", 401);
 
         const contentLength = Number(request.headers.get("content-length") ?? 0);
         if (contentLength > MAX_REQUEST_BYTES) return errorResponse("A gravação ficou muito grande. Grave um comando mais curto.", 413);
