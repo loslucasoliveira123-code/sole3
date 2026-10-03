@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep SOLE AI financial commands deterministic and confirmation-gated before persisting, because inferred financial data must remain reviewable.
+- Capture voice commands as complete WAV files and transcribe them through an authenticated server route, keeping AI credentials out of the browser.

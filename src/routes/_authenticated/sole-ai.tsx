@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createParser } from "eventsource-parser";
+import { Mic, Square } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { responderIA, sugestoesIA } from "@/lib/sole-data";
 import { NovoLancamento } from "@/components/Forms";
@@ -7,6 +9,8 @@ import { useCasal } from "@/lib/casal";
 import { interpretarComandoLancamento, type RascunhoLancamento } from "@/lib/sole-command";
 import { brl } from "@/lib/sole-data";
 import { Button } from "@/components/ui/button";
+import { recordWav } from "@/lib/record-wav";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/sole-ai")({
   head: () => ({
@@ -31,11 +35,82 @@ export const Route = createFileRoute("/_authenticated/sole-ai")({
 
 type Mensagem = { de: "user" | "ai"; texto: string };
 
+type Gravacao = Awaited<ReturnType<typeof recordWav>>;
+
+async function lerMensagemErro(response: Response) {
+  try {
+    const body = (await response.json()) as { message?: string };
+    return body.message ?? "Não foi possível transcrever a gravação.";
+  } catch {
+    return "Não foi possível transcrever a gravação.";
+  }
+}
+
+async function transcrever(file: File) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
+
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await fetch("/api/transcribe", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!response.ok) throw new Error(await lerMensagemErro(response));
+  if (!response.body) throw new Error("A transcrição não retornou conteúdo.");
+
+  let textoFinal = "";
+  let textoParcial = "";
+  let erroFluxo = "";
+  const parser = createParser({
+    onEvent(event) {
+      if (event.data === "[DONE]") return;
+      try {
+        const payload = JSON.parse(event.data) as { type?: string; delta?: string; text?: string; message?: string; error?: { message?: string } };
+        const tipo = payload.type ?? event.event;
+        if (tipo === "transcript.text.delta" && payload.delta) textoParcial += payload.delta;
+        if (tipo === "transcript.text.done" && payload.text) textoFinal = payload.text;
+        if (tipo?.includes("error")) erroFluxo = payload.error?.message ?? payload.message ?? "A transcrição foi interrompida.";
+      } catch {
+        // Frames sem JSON não fazem parte da transcrição.
+      }
+    },
+  });
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parser.feed(decoder.decode(value, { stream: true }));
+  }
+  parser.feed(decoder.decode());
+  if (erroFluxo) throw new Error(erroFluxo);
+  const resultado = (textoFinal || textoParcial).trim();
+  if (!resultado) throw new Error("Não consegui ouvir o comando. Tente falar novamente.");
+  return resultado;
+}
+
+function extrairComandoDeVoz(transcricao: string) {
+  const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const inicio = normalizada.match(/^\s*(?:sole|soli|so)[,.]?\s+registre\b[\s,:-]*/i);
+  return inicio ? transcricao.slice(inicio[0].length).trim() : null;
+}
+
 function SoleAI() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState("");
   const [rascunho, setRascunho] = useState<RascunhoLancamento | null>(null);
+  const [gravando, setGravando] = useState(false);
+  const [transcrevendo, setTranscrevendo] = useState(false);
+  const [erroVoz, setErroVoz] = useState("");
+  const gravacao = useRef<Gravacao | null>(null);
   const { data: casal } = useCasal();
+
+  useEffect(() => () => {
+    if (gravacao.current) void gravacao.current.stop().catch(() => undefined);
+  }, []);
 
   function enviar(pergunta: string) {
     const limpa = pergunta.trim().slice(0, 300);
@@ -55,6 +130,42 @@ function SoleAI() {
       setMensagens((m) => [...m, { de: "user", texto: limpa }, { de: "ai", texto: responderIA(limpa) }]);
     }
     setTexto("");
+  }
+
+  async function alternarGravacao() {
+    setErroVoz("");
+    if (!gravando) {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setErroVoz("Este navegador não permite gravação por microfone.");
+        return;
+      }
+      try {
+        gravacao.current = await recordWav();
+        setGravando(true);
+      } catch {
+        setErroVoz("Permita o acesso ao microfone para registrar por voz.");
+      }
+      return;
+    }
+
+    const atual = gravacao.current;
+    gravacao.current = null;
+    setGravando(false);
+    if (!atual) return;
+    setTranscrevendo(true);
+    try {
+      const transcricao = await transcrever(await atual.stop());
+      const comando = extrairComandoDeVoz(transcricao);
+      if (!comando) {
+        setErroVoz('Comece dizendo “Sole registre” e depois informe o lançamento.');
+        return;
+      }
+      enviar(comando);
+    } catch (error) {
+      setErroVoz(error instanceof Error ? error.message : "Não foi possível entender a gravação.");
+    } finally {
+      setTranscrevendo(false);
+    }
   }
 
   return (
@@ -98,7 +209,7 @@ function SoleAI() {
       )}
 
       <form
-        className="mt-6 flex gap-2"
+        className="mt-6 flex items-stretch gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           enviar(texto);
@@ -109,18 +220,37 @@ function SoleAI() {
           onChange={(e) => setTexto(e.target.value)}
           maxLength={300}
           placeholder="Pergunte ou registre: gastei 180 no mercado"
-          className="flex-1 rounded-2xl border border-border bg-secondary px-4 py-3 text-[13px] outline-none placeholder:text-muted-foreground focus:border-accent"
+          className="min-w-0 flex-1 rounded-2xl border border-border bg-secondary px-4 py-3 text-[13px] outline-none placeholder:text-muted-foreground focus:border-accent"
         />
         <Button
-          type="submit"
-          className="h-auto rounded-2xl px-5 text-[13px]"
+          type="button"
+          size="icon"
+          variant={gravando ? "destructive" : "outline"}
+          onClick={alternarGravacao}
+          disabled={transcrevendo}
+          aria-label={gravando ? "Parar gravação" : "Registrar por voz"}
+          title={gravando ? "Parar gravação" : "Registrar por voz"}
+          className="h-auto w-12 shrink-0 rounded-2xl"
         >
-          Enviar
+          {gravando ? <Square /> : <Mic />}
+        </Button>
+        <Button
+          type="submit"
+          disabled={gravando || transcrevendo}
+          className="h-auto rounded-2xl px-4 text-[13px]"
+        >
+          {transcrevendo ? "Ouvindo…" : "Enviar"}
         </Button>
       </form>
 
+      {(gravando || erroVoz) && (
+        <p className={`mt-2 text-[12px] ${erroVoz ? "text-destructive" : "text-accent"}`} role={erroVoz ? "alert" : "status"}>
+          {erroVoz || 'Gravando… diga “Sole registre”, informe o lançamento e toque em parar.'}
+        </p>
+      )}
+
       <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-        O SOLE AI usa os dados que você autorizou e só registra um lançamento depois da sua confirmação.
+        Digite ou toque no microfone e comece com “Sole registre”. O lançamento só é salvo depois da sua confirmação.
       </p>
       <NovoLancamento
         open={Boolean(rascunho)}
