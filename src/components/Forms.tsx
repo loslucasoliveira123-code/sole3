@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,22 @@ import {
   useCasal,
   useProjetos,
   useSalvar,
+  type Lancamento,
   type Meta,
 } from "@/lib/casal";
+import type { RascunhoLancamento } from "@/lib/sole-command";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function Sheet({
   open,
@@ -75,7 +89,19 @@ const lancSchema = z.object({
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
 });
 
-export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function NovoLancamento({
+  open,
+  onClose,
+  lancamento,
+  rascunho,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  lancamento?: Lancamento | null;
+  rascunho?: RascunhoLancamento | null;
+  onSaved?: (acao: "criado" | "editado" | "excluido", lancamento?: RascunhoLancamento) => void;
+}) {
   const { data: casal } = useCasal();
   const { data: projetos = [] } = useProjetos(casal?.id);
   const [tipo, setTipo] = useState<"despesa" | "receita">("despesa");
@@ -88,33 +114,60 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
   const salvar = useSalvar("lancamentos", (v: Record<string, unknown>) =>
     supabase.from("lancamentos").insert(v as never),
   );
+  const atualizar = useSalvar("lancamentos", (v: { id: string; dados: Record<string, unknown> }) =>
+    supabase.from("lancamentos").update(v.dados as never).eq("id", v.id),
+  );
+  const excluir = useSalvar("lancamentos", (id: string) =>
+    supabase.from("lancamentos").delete().eq("id", id),
+  );
   const nomesMembros = casal?.membros.map((m) => m.nome.split(" ")[0] || "Eu") ?? [];
   const temQuei = nomesMembros.some((n) => n.toLowerCase().startsWith("quei"));
   const pessoas = [...nomesMembros, ...(temQuei ? [] : ["Quei"]), "Casal"];
   const cats = tipo === "despesa" ? categoriasDespesa : categoriasReceita;
 
+  useEffect(() => {
+    if (!open) return;
+    const origem = lancamento ?? rascunho;
+    setTipo(origem?.tipo ?? "despesa");
+    setTitulo(origem?.titulo ?? "");
+    setValor(origem ? String(origem.valor).replace(".", ",") : "");
+    setCategoria(origem?.categoria ?? "Outros");
+    setData(origem?.data ?? hoje());
+    setPagador(origem?.pagador ?? "Casal");
+    setProjeto(origem?.projeto_id ?? "");
+  }, [open, lancamento, rascunho]);
+
+  const editando = Boolean(lancamento);
+  const revisando = Boolean(rascunho) && !editando;
+
   return (
-    <Sheet open={open} onClose={onClose} title="Novo lançamento">
+    <Sheet open={open} onClose={onClose} title={editando ? "Editar lançamento" : revisando ? "Revisar lançamento" : "Novo lançamento"}>
       <form
         className="space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
           const p = lancSchema.safeParse({ titulo, valor: parseValor(valor), data });
           if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
+          if (!casal) { toast.error("Não foi possível identificar o casal"); return; }
+          const dados: RascunhoLancamento = {
+            tipo,
+            titulo: p.data.titulo,
+            valor: p.data.valor,
+            data: p.data.data,
+            categoria,
+            pagador,
+            projeto_id: projeto || null,
+          };
           try {
-            await salvar.mutateAsync({
-              casal_id: casal!.id,
-              tipo,
-              titulo: p.data.titulo,
-              valor: p.data.valor,
-              data: p.data.data,
-              categoria,
-              pagador,
-              projeto_id: projeto || null,
-            });
-            toast.success("Lançamento salvo");
+            if (lancamento) {
+              await atualizar.mutateAsync({ id: lancamento.id, dados });
+            } else {
+              await salvar.mutateAsync({ casal_id: casal.id, ...dados });
+            }
+            toast.success(lancamento ? "Lançamento atualizado" : "Lançamento salvo");
             setTitulo("");
             setValor("");
+            onSaved?.(lancamento ? "editado" : "criado", dados);
             onClose();
           } catch (err) {
             toast.error((err as Error).message);
@@ -175,7 +228,41 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
             </select>
           </Campo>
         )}
-        <Botao loading={salvar.isPending}>Salvar lançamento</Botao>
+        <Botao loading={salvar.isPending || atualizar.isPending}>{revisando ? "Confirmar lançamento" : "Salvar lançamento"}</Botao>
+        {lancamento && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="ghost" className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
+                Excluir lançamento
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-[390px] rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir este lançamento?</AlertDialogTitle>
+                <AlertDialogDescription>Essa ação remove o registro e recalcula os totais do casal.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={excluir.isPending}
+                  onClick={async () => {
+                    try {
+                      await excluir.mutateAsync(lancamento.id);
+                      toast.success("Lançamento excluído");
+                      onSaved?.("excluido");
+                      onClose();
+                    } catch (err) {
+                      toast.error((err as Error).message);
+                    }
+                  }}
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </form>
     </Sheet>
   );
