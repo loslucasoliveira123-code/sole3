@@ -50,7 +50,7 @@ function valorDoComando(texto: string) {
 function categoriaDoComando(texto: string, tipo: Lancamento["tipo"]) {
   const regras = tipo === "despesa" ? regrasDespesa : regrasReceita;
   const categoria = regras.find(([, termos]) => termos.some((termo) => texto.includes(termo)))?.[0];
-  const permitidas = tipo === "despesa" ? categoriasDespesa : categoriasReceita;
+  const permitidas: readonly string[] = tipo === "despesa" ? categoriasDespesa : categoriasReceita;
   return categoria && permitidas.includes(categoria) ? categoria : "Outros";
 }
 
