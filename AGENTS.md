@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep SOLE AI financial commands deterministic and confirmation-gated before persisting, because inferred financial data must remain reviewable.

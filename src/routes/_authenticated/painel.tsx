@@ -3,9 +3,10 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { NovoLancamento, Vazio } from "@/components/Forms";
 import { brl } from "@/lib/sole-data";
-import { gastoProjeto, nomeCasal, useCasal, useLancamentos, useMetas, useProjetos } from "@/lib/casal";
+import { gastoProjeto, nomeCasal, useCasal, useLancamentos, useMetas, useProjetos, type Lancamento } from "@/lib/casal";
 import { calcularTotais } from "@/lib/totais";
 import { ListaLanc } from "@/components/ListaLanc";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
 function Dashboard() {
   const [espaco, setEspaco] = useState<"casal" | "projetos">("casal");
   const [novo, setNovo] = useState(false);
+  const [selecionado, setSelecionado] = useState<Lancamento | null>(null);
   const { data: casal } = useCasal();
   const { data: lanc = [], isLoading } = useLancamentos(casal?.id);
   const { data: metas = [] } = useMetas(casal?.id);
@@ -40,10 +42,10 @@ function Dashboard() {
 
       <div className="-mx-5 mt-5 flex gap-2 px-5">
         {(["casal", "projetos"] as const).map((e) => (
-          <button key={e} type="button" onClick={() => setEspaco(e)}
-            className={`rounded-[14px] px-4 py-2.5 text-[13px] font-medium ${espaco === e ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+          <Button key={e} type="button" variant="ghost" onClick={() => setEspaco(e)}
+            className={`h-auto rounded-[14px] px-4 py-2.5 text-[13px] font-medium ${espaco === e ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
             {e === "casal" ? "Casal" : "Projetos"}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -121,11 +123,12 @@ function Dashboard() {
 
           <section className="mt-7">
             <div className="flex items-baseline justify-between"><h2 className="font-display text-[22px] tracking-tight">Movimentos</h2><Link to="/movimentos" className="text-[11px] text-muted-foreground">Ver tudo</Link></div>
-            <ListaLanc itens={lanc.slice(0, 4)} />
+            <ListaLanc itens={lanc.slice(0, 4)} onSelect={setSelecionado} />
           </section>
         </>
       )}
       <NovoLancamento open={novo} onClose={() => setNovo(false)} />
+      <NovoLancamento open={Boolean(selecionado)} lancamento={selecionado} onClose={() => setSelecionado(null)} />
     </AppShell>
   );
 }

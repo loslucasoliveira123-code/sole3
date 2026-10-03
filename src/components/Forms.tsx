@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,22 @@ import {
   useCasal,
   useProjetos,
   useSalvar,
+  type Lancamento,
   type Meta,
 } from "@/lib/casal";
+import type { RascunhoLancamento } from "@/lib/sole-command";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function Sheet({
   open,
@@ -25,16 +39,16 @@ export function Sheet({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/40" onClick={onClose}>
       <div
         className="rise max-h-[90vh] w-full max-w-[430px] overflow-y-auto rounded-t-3xl bg-background px-5 pt-5 pb-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-[24px] tracking-tight">{title}</h2>
-          <button type="button" onClick={onClose} className="text-[13px] text-muted-foreground">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} className="text-[13px] text-muted-foreground">
             Fechar
-          </button>
+          </Button>
         </div>
         <div className="mt-4 space-y-3">{children}</div>
       </div>
@@ -56,13 +70,13 @@ export function Campo({ label, children }: { label: string; children: ReactNode 
 
 function Botao({ loading, children }: { loading?: boolean; children: ReactNode }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={loading}
-      className="mt-2 w-full rounded-2xl bg-primary py-3.5 text-[14px] font-medium text-primary-foreground disabled:opacity-60"
+      className="mt-2 h-auto w-full rounded-2xl py-3.5 text-[14px]"
     >
       {loading ? "Salvando..." : children}
-    </button>
+    </Button>
   );
 }
 
@@ -75,7 +89,19 @@ const lancSchema = z.object({
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
 });
 
-export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function NovoLancamento({
+  open,
+  onClose,
+  lancamento,
+  rascunho,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  lancamento?: Lancamento | null;
+  rascunho?: RascunhoLancamento | null;
+  onSaved?: (acao: "criado" | "editado" | "excluido", lancamento?: RascunhoLancamento) => void;
+}) {
   const { data: casal } = useCasal();
   const { data: projetos = [] } = useProjetos(casal?.id);
   const [tipo, setTipo] = useState<"despesa" | "receita">("despesa");
@@ -88,33 +114,60 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
   const salvar = useSalvar("lancamentos", (v: Record<string, unknown>) =>
     supabase.from("lancamentos").insert(v as never),
   );
+  const atualizar = useSalvar("lancamentos", (v: { id: string; dados: Record<string, unknown> }) =>
+    supabase.from("lancamentos").update(v.dados as never).eq("id", v.id),
+  );
+  const excluir = useSalvar("lancamentos", (id: string) =>
+    supabase.from("lancamentos").delete().eq("id", id),
+  );
   const nomesMembros = casal?.membros.map((m) => m.nome.split(" ")[0] || "Eu") ?? [];
   const temQuei = nomesMembros.some((n) => n.toLowerCase().startsWith("quei"));
   const pessoas = [...nomesMembros, ...(temQuei ? [] : ["Quei"]), "Casal"];
   const cats = tipo === "despesa" ? categoriasDespesa : categoriasReceita;
 
+  useEffect(() => {
+    if (!open) return;
+    const origem = lancamento ?? rascunho;
+    setTipo(origem?.tipo ?? "despesa");
+    setTitulo(origem?.titulo ?? "");
+    setValor(origem ? String(origem.valor).replace(".", ",") : "");
+    setCategoria(origem?.categoria ?? "Outros");
+    setData(origem?.data ?? hoje());
+    setPagador(origem?.pagador ?? "Casal");
+    setProjeto(origem?.projeto_id ?? "");
+  }, [open, lancamento, rascunho]);
+
+  const editando = Boolean(lancamento);
+  const revisando = Boolean(rascunho) && !editando;
+
   return (
-    <Sheet open={open} onClose={onClose} title="Novo lançamento">
+    <Sheet open={open} onClose={onClose} title={editando ? "Editar lançamento" : revisando ? "Revisar lançamento" : "Novo lançamento"}>
       <form
         className="space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
           const p = lancSchema.safeParse({ titulo, valor: parseValor(valor), data });
           if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
+          if (!casal) { toast.error("Não foi possível identificar o casal"); return; }
+          const dados: RascunhoLancamento = {
+            tipo,
+            titulo: p.data.titulo,
+            valor: p.data.valor,
+            data: p.data.data,
+            categoria,
+            pagador,
+            projeto_id: projeto || null,
+          };
           try {
-            await salvar.mutateAsync({
-              casal_id: casal!.id,
-              tipo,
-              titulo: p.data.titulo,
-              valor: p.data.valor,
-              data: p.data.data,
-              categoria,
-              pagador,
-              projeto_id: projeto || null,
-            });
-            toast.success("Lançamento salvo");
+            if (lancamento) {
+              await atualizar.mutateAsync({ id: lancamento.id, dados });
+            } else {
+              await salvar.mutateAsync({ casal_id: casal.id, ...dados });
+            }
+            toast.success(lancamento ? "Lançamento atualizado" : "Lançamento salvo");
             setTitulo("");
             setValor("");
+            onSaved?.(lancamento ? "editado" : "criado", dados);
             onClose();
           } catch (err) {
             toast.error((err as Error).message);
@@ -123,19 +176,20 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
       >
         <div className="grid grid-cols-2 gap-2">
           {(["despesa", "receita"] as const).map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
+              variant="ghost"
               onClick={() => {
                 setTipo(t);
                 setCategoria("Outros");
               }}
-              className={`rounded-2xl py-2.5 text-[13px] font-medium ${
+              className={`h-auto rounded-2xl py-2.5 text-[13px] font-medium ${
                 tipo === t ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
               }`}
             >
               {t === "despesa" ? "Despesa" : "Receita"}
-            </button>
+            </Button>
           ))}
         </div>
         <Campo label="Descrição">
@@ -175,7 +229,41 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
             </select>
           </Campo>
         )}
-        <Botao loading={salvar.isPending}>Salvar lançamento</Botao>
+        <Botao loading={salvar.isPending || atualizar.isPending}>{revisando ? "Confirmar lançamento" : "Salvar lançamento"}</Botao>
+        {lancamento && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="ghost" className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive">
+                Excluir lançamento
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-[390px] rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir este lançamento?</AlertDialogTitle>
+                <AlertDialogDescription>Essa ação remove o registro e recalcula os totais do casal.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={excluir.isPending}
+                  onClick={async () => {
+                    try {
+                      await excluir.mutateAsync(lancamento.id);
+                      toast.success("Lançamento excluído");
+                      onSaved?.("excluido");
+                      onClose();
+                    } catch (err) {
+                      toast.error((err as Error).message);
+                    }
+                  }}
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </form>
     </Sheet>
   );
@@ -347,9 +435,9 @@ export function Vazio({ titulo, texto, acao, onAcao }: { titulo: string; texto: 
     <div className="folio mt-6 border border-dashed border-border px-6 py-10 text-center">
       <p className="font-display text-[22px] tracking-tight">{titulo}</p>
       <p className="mx-auto mt-2 max-w-[280px] text-[13px] text-muted-foreground">{texto}</p>
-      <button type="button" onClick={onAcao} className="mt-5 rounded-2xl bg-primary px-5 py-3 text-[13px] font-medium text-primary-foreground">
+      <Button type="button" onClick={onAcao} className="mt-5 h-auto rounded-2xl px-5 py-3 text-[13px]">
         {acao}
-      </button>
+      </Button>
     </div>
   );
 }
