@@ -88,7 +88,9 @@ export function NovoLancamento({ open, onClose }: { open: boolean; onClose: () =
   const salvar = useSalvar("lancamentos", (v: Record<string, unknown>) =>
     supabase.from("lancamentos").insert(v as never),
   );
-  const pessoas = [...(casal?.membros.map((m) => m.nome.split(" ")[0] || "Eu") ?? []), "Casal"];
+  const nomesMembros = casal?.membros.map((m) => m.nome.split(" ")[0] || "Eu") ?? [];
+  const temQuei = nomesMembros.some((n) => n.toLowerCase().startsWith("quei"));
+  const pessoas = [...nomesMembros, ...(temQuei ? [] : ["Quei"]), "Casal"];
   const cats = tipo === "despesa" ? categoriasDespesa : categoriasReceita;
 
   return (
