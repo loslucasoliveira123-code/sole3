@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -31,9 +31,59 @@ function Mais() {
   const { data: metas = [] } = useMetas(casal?.id);
   const { data: projetos = [] } = useProjetos(casal?.id);
   const t = calcularTotais(lanc, metas, projetos);
+  const meuNome = casal?.membros.find((m) => m.user_id === casal.meuId)?.nome ?? "";
+  const [nome, setNome] = useState("");
+  const [salvandoNome, setSalvandoNome] = useState(false);
   const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
   const completo = (casal?.membros.length ?? 0) >= 2;
+
+  useEffect(() => {
+    setNome(meuNome);
+  }, [meuNome]);
+
+  async function salvarPerfil(e: React.FormEvent) {
+    e.preventDefault();
+    const validacao = z.string().trim().min(2, "Informe pelo menos 2 caracteres").max(80).safeParse(nome);
+    if (!validacao.success) {
+      toast.error(validacao.error.issues[0]?.message ?? "Informe um nome válido");
+      return;
+    }
+    if (!casal) return;
+
+    setSalvandoNome(true);
+    const novoNome = validacao.data;
+    const { error: perfilErro } = await supabase
+      .from("profiles")
+      .update({ display_name: novoNome, updated_at: new Date().toISOString() })
+      .eq("id", casal.meuId);
+
+    if (perfilErro) {
+      setSalvandoNome(false);
+      toast.error("Não foi possível atualizar seu nome");
+      return;
+    }
+
+    const { error: membroErro } = await supabase
+      .from("casal_membros")
+      .update({ nome: novoNome })
+      .eq("user_id", casal.meuId);
+
+    if (membroErro) {
+      await supabase
+        .from("profiles")
+        .update({ display_name: meuNome, updated_at: new Date().toISOString() })
+        .eq("id", casal.meuId);
+      setSalvandoNome(false);
+      toast.error("Não foi possível atualizar seu nome");
+      return;
+    }
+
+    await supabase.auth.updateUser({ data: { display_name: novoNome } });
+    await queryClient.invalidateQueries({ queryKey: ["casal"] });
+    setSalvandoNome(false);
+    toast.success("Nome atualizado");
+  }
 
   async function convidar(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +113,35 @@ function Mais() {
           <span>Saldo <span className="font-medium text-foreground">{brl(t.saldo)}</span></span>
           <span>Em metas <span className="font-medium text-foreground">{brl(t.guardado)}</span></span>
         </div>
+      </section>
+
+      <section className="folio mt-6 border border-border p-5">
+        <h2 className="font-display text-[20px] tracking-tight">Seu perfil</h2>
+        <p className="mt-1 text-[13px] text-muted-foreground">
+          Este nome aparece para você e para sua parceira.
+        </p>
+        <form onSubmit={salvarPerfil} className="mt-4 space-y-2">
+          <label htmlFor="nome-perfil" className="block text-[12px] font-medium text-muted-foreground">
+            Seu nome
+          </label>
+          <input
+            id="nome-perfil"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Como você quer ser chamado"
+            autoComplete="name"
+            maxLength={80}
+            required
+            className="w-full rounded-2xl border border-border bg-secondary px-4 py-3 text-[14px] outline-none focus:border-accent"
+          />
+          <button
+            type="submit"
+            disabled={salvandoNome || !casal || nome.trim() === meuNome}
+            className="w-full rounded-2xl bg-primary py-3 text-[14px] font-medium text-primary-foreground disabled:opacity-60"
+          >
+            {salvandoNome ? "Salvando…" : "Salvar nome"}
+          </button>
+        </form>
       </section>
 
       <section className="folio mt-6 border border-border p-5">
