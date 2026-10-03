@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { NovoLancamento, Vazio } from "@/components/Forms";
 import { brl } from "@/lib/sole-data";
-import { gastoProjeto, nomeCasal, useCasal, useLancamentos, useMetas, useProjetos } from "@/lib/casal";
+import { gastoProjeto, nomeCasal, useCasal, useLancamentos, useMetas, useProjetos, type Lancamento } from "@/lib/casal";
 import { calcularTotais } from "@/lib/totais";
 import { ListaLanc } from "@/components/ListaLanc";
 
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
 function Dashboard() {
   const [espaco, setEspaco] = useState<"casal" | "projetos">("casal");
   const [novo, setNovo] = useState(false);
+  const [selecionado, setSelecionado] = useState<Lancamento | null>(null);
   const { data: casal } = useCasal();
   const { data: lanc = [], isLoading } = useLancamentos(casal?.id);
   const { data: metas = [] } = useMetas(casal?.id);
@@ -121,11 +122,12 @@ function Dashboard() {
 
           <section className="mt-7">
             <div className="flex items-baseline justify-between"><h2 className="font-display text-[22px] tracking-tight">Movimentos</h2><Link to="/movimentos" className="text-[11px] text-muted-foreground">Ver tudo</Link></div>
-            <ListaLanc itens={lanc.slice(0, 4)} />
+            <ListaLanc itens={lanc.slice(0, 4)} onSelect={setSelecionado} />
           </section>
         </>
       )}
       <NovoLancamento open={novo} onClose={() => setNovo(false)} />
+      <NovoLancamento open={Boolean(selecionado)} lancamento={selecionado} onClose={() => setSelecionado(null)} />
     </AppShell>
   );
 }

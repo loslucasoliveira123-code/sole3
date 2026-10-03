@@ -41,7 +41,7 @@ function dataDoComando(texto: string) {
 }
 
 function valorDoComando(texto: string) {
-  const trecho = texto.match(/(?:r\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})|\d+(?:[.,]\d{1,2})?)/i)?.[1];
+  const trecho = texto.match(/(?:r\$\s*)?(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+(?:\.\d{1,2})?)/i)?.[1];
   if (!trecho) return null;
   const valor = Number(trecho.includes(",") ? trecho.replace(/\./g, "").replace(",", ".") : trecho);
   return Number.isFinite(valor) && valor > 0 ? valor : null;
@@ -57,7 +57,7 @@ function categoriaDoComando(texto: string, tipo: Lancamento["tipo"]) {
 function tituloDoComando(texto: string, valor: number) {
   const limpo = texto
     .replace(/r\$\s*/gi, "")
-    .replace(String(valor).replace(".", ","), "")
+    .replace(/\b\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?\b|\b\d+(?:[.,]\d{1,2})?\b/, "")
     .replace(/\b(gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu|quei|casal|lucas|hoje|ontem)\b/gi, "")
     .replace(/\b(de|do|da|no|na|por|para|em)\b/gi, " ")
     .replace(/\s+/g, " ")
