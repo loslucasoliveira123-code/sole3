@@ -1,8 +1,8 @@
 # Roadmap
 
-- [ ] Permitir abrir qualquer lançamento para editar todos os campos.
-- [ ] Permitir excluir um lançamento com confirmação.
-- [ ] Interpretar comandos simples na SOLE AI para receitas e despesas.
-- [ ] Confirmar os dados inferidos antes de criar o lançamento real.
-- [ ] Usar o usuário atual como pagador/recebedor padrão.
-- [ ] Validar os fluxos no desktop e no celular.
+- [x] Permitir abrir qualquer lançamento para editar todos os campos.
+- [x] Permitir excluir um lançamento com confirmação.
+- [x] Interpretar comandos simples na SOLE AI para receitas e despesas.
+- [x] Confirmar os dados inferidos antes de criar o lançamento real.
+- [x] Usar o usuário atual como pagador/recebedor padrão.
+- [x] Validar os fluxos no desktop e no celular.
