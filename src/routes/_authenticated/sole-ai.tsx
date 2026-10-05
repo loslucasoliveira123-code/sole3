@@ -107,6 +107,7 @@ function SoleAI() {
   const [gravando, setGravando] = useState(false);
   const [transcrevendo, setTranscrevendo] = useState(false);
   const [erroVoz, setErroVoz] = useState("");
+  const [comandoPendente, setComandoPendente] = useState("");
   const gravacao = useRef<Gravacao | null>(null);
   const { data: casal } = useCasal();
 
@@ -114,9 +115,22 @@ function SoleAI() {
     if (gravacao.current) void gravacao.current.stop().catch(() => undefined);
   }, []);
 
+  useEffect(() => {
+    if (!casal || !comandoPendente) return;
+    const comando = comandoPendente;
+    setComandoPendente("");
+    enviar(comando);
+  }, [casal, comandoPendente]);
+
   function enviar(pergunta: string) {
     const limpa = pergunta.trim().slice(0, 300);
     if (!limpa) return;
+    const pareceLancamento = /\b(gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i.test(limpa);
+    if (pareceLancamento && !casal) {
+      setComandoPendente(limpa);
+      setTexto("");
+      return;
+    }
     const proposta = interpretarComandoLancamento(limpa, casal);
     if (proposta) {
       setMensagens((m) => [
