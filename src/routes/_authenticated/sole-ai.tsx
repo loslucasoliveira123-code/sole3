@@ -94,7 +94,9 @@ async function transcrever(file: File) {
 
 function extrairComandoDeVoz(transcricao: string) {
   const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const inicio = normalizada.match(/^\s*(?:sole|soli|so)[,.]?\s+registre\b[\s,:-]*/i);
+  const inicio = normalizada.match(
+    /^\s*(?:sole|soli)[,.]?\s+(?=(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b)/i,
+  );
   return inicio ? transcricao.slice(inicio[0].length).trim() : null;
 }
 
@@ -132,32 +134,17 @@ function SoleAI() {
     setTexto("");
   }
 
-  async function alternarGravacao() {
-    setErroVoz("");
-    if (!gravando) {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setErroVoz("Este navegador não permite gravação por microfone.");
-        return;
-      }
-      try {
-        gravacao.current = await recordWav();
-        setGravando(true);
-      } catch {
-        setErroVoz("Permita o acesso ao microfone para registrar por voz.");
-      }
-      return;
-    }
-
+  async function finalizarGravacao() {
     const atual = gravacao.current;
+    if (!atual) return;
     gravacao.current = null;
     setGravando(false);
-    if (!atual) return;
     setTranscrevendo(true);
     try {
       const transcricao = await transcrever(await atual.stop());
       const comando = extrairComandoDeVoz(transcricao);
       if (!comando) {
-        setErroVoz('Comece dizendo “Sole registre” e depois informe o lançamento.');
+        setErroVoz('Comece dizendo “Sole gastei…” ou “Sole recebi…”.');
         return;
       }
       enviar(comando);
@@ -165,6 +152,26 @@ function SoleAI() {
       setErroVoz(error instanceof Error ? error.message : "Não foi possível entender a gravação.");
     } finally {
       setTranscrevendo(false);
+    }
+  }
+
+  async function alternarGravacao() {
+    setErroVoz("");
+    if (gravacao.current) {
+      await finalizarGravacao();
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErroVoz("Este navegador não permite gravação por microfone.");
+      return;
+    }
+    try {
+      gravacao.current = await recordWav({
+        onSpeechEnd: () => void finalizarGravacao(),
+      });
+      setGravando(true);
+    } catch {
+      setErroVoz("Permita o acesso ao microfone para registrar por voz.");
     }
   }
 
@@ -245,12 +252,12 @@ function SoleAI() {
 
       {(gravando || erroVoz) && (
         <p className={`mt-2 text-[12px] ${erroVoz ? "text-destructive" : "text-accent"}`} role={erroVoz ? "alert" : "status"}>
-          {erroVoz || 'Gravando… diga “Sole registre”, informe o lançamento e toque em parar.'}
+          {erroVoz || 'Gravando… diga “Sole gastei…” ou “Sole recebi…”. A gravação termina ao concluir a fala.'}
         </p>
       )}
 
       <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-        Digite ou toque no microfone e comece com “Sole registre”. O lançamento só é salvo depois da sua confirmação.
+        Digite ou toque no microfone e comece com “Sole gastei…” ou “Sole recebi…”. O lançamento só é salvo depois da sua confirmação.
       </p>
       <NovoLancamento
         open={Boolean(rascunho)}
