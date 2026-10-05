@@ -95,9 +95,10 @@ async function transcrever(file: File) {
 function extrairComandoDeVoz(transcricao: string) {
   const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const inicio = normalizada.match(
-    /^\s*(?:sole|soli)[,.]?\s+(?=(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b)/i,
+    /^\s*(?:sole|soli|sol|soule)\s*[,.:;!?-]*\s*(?=(?:eu\s+)?(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b)/i,
   );
-  return inicio ? transcricao.slice(inicio[0].length).trim() : null;
+  if (!inicio) return null;
+  return transcricao.slice(inicio[0].length).trim().replace(/^eu\s+/i, "");
 }
 
 function SoleAI() {

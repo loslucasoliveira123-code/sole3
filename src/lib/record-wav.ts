@@ -36,10 +36,13 @@ type RecordWavOptions = {
   onSpeechEnd?: () => void;
   silenceMs?: number;
   maxDurationMs?: number;
+  noSpeechTimeoutMs?: number;
 };
 
 export async function recordWav(options: RecordWavOptions = {}): Promise<{ stop: () => Promise<File> }> {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+  });
   let context: AudioContext | undefined;
 
   try {
@@ -49,11 +52,14 @@ export async function recordWav(options: RecordWavOptions = {}): Promise<{ stop:
     const source = audioContext.createMediaStreamSource(stream);
     const node = audioContext.createScriptProcessor(4096, 1, 1);
     const chunks: Float32Array[] = [];
-    const silenceMs = options.silenceMs ?? 1300;
+    const silenceMs = options.silenceMs ?? 1600;
     const maxDurationMs = options.maxDurationMs ?? 30_000;
+    const noSpeechTimeoutMs = options.noSpeechTimeoutMs ?? 10_000;
     const startedAt = performance.now();
     let heardSpeech = false;
     let lastSpeechAt = startedAt;
+    let noiseFloor = 0.002;
+    let calibrationFrames = 0;
     let endNotified = false;
     const notifyEnd = () => {
       if (endNotified) return;
@@ -64,14 +70,27 @@ export async function recordWav(options: RecordWavOptions = {}): Promise<{ stop:
       const input = event.inputBuffer.getChannelData(0);
       chunks.push(new Float32Array(input));
       let energy = 0;
-      for (const sample of input) energy += sample * sample;
+      let peak = 0;
+      for (const sample of input) {
+        energy += sample * sample;
+        peak = Math.max(peak, Math.abs(sample));
+      }
       const rms = Math.sqrt(energy / input.length);
       const now = performance.now();
-      if (rms >= 0.018) {
+      if (!heardSpeech && now - startedAt < 500) {
+        noiseFloor = (noiseFloor * calibrationFrames + rms) / (calibrationFrames + 1);
+        calibrationFrames += 1;
+      }
+      const speechThreshold = Math.max(0.004, noiseFloor * 2.5);
+      if (rms >= speechThreshold || peak >= Math.max(0.015, speechThreshold * 2)) {
         heardSpeech = true;
         lastSpeechAt = now;
       }
-      if ((heardSpeech && now - lastSpeechAt >= silenceMs) || now - startedAt >= maxDurationMs) notifyEnd();
+      if (
+        (heardSpeech && now - lastSpeechAt >= silenceMs) ||
+        (!heardSpeech && now - startedAt >= noSpeechTimeoutMs) ||
+        now - startedAt >= maxDurationMs
+      ) notifyEnd();
     };
     source.connect(node);
     node.connect(audioContext.destination);

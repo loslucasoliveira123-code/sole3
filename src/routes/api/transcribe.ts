@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/transcribe")({
             {
               baseURL: "https://ai.gateway.lovable.dev/v1",
               apiKey: lovableApiKey,
-              model: "google/gemini-3.5-transcribe",
+              model: "openai/gpt-transcribe",
               maxFileBytes: MAX_AUDIO_BYTES,
             },
             audio,
