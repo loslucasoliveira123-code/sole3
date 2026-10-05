@@ -14,7 +14,6 @@ export async function transcribeAudio(config: TranscriptionConfig, file: File) {
   form.append("file", file, file.name);
   form.append("response_format", "json");
   form.append("stream", "true");
-  form.append("language", "pt-BR");
 
   return fetch(`${config.baseURL}/audio/transcriptions`, {
     method: "POST",
