@@ -77,12 +77,12 @@ export async function recordWav(options: RecordWavOptions = {}): Promise<{ stop:
       }
       const rms = Math.sqrt(energy / input.length);
       const now = performance.now();
-      if (!heardSpeech && now - startedAt < 500) {
+      if (!heardSpeech && now - startedAt < 500 && rms < 0.01) {
         noiseFloor = (noiseFloor * calibrationFrames + rms) / (calibrationFrames + 1);
         calibrationFrames += 1;
       }
-      const speechThreshold = Math.max(0.004, noiseFloor * 2.5);
-      if (rms >= speechThreshold || peak >= Math.max(0.015, speechThreshold * 2)) {
+      const speechThreshold = Math.max(0.0035, Math.min(0.012, noiseFloor * 2.2));
+      if (rms >= speechThreshold || peak >= Math.max(0.012, speechThreshold * 2)) {
         heardSpeech = true;
         lastSpeechAt = now;
       }
