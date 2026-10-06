@@ -92,19 +92,22 @@ async function transcrever(file: File) {
   return resultado;
 }
 
+// A transcrição costuma escrever "Sole" como "Só", "Só lhe", "Sol", "Sou" etc.
+const GATILHO_SOLE = /^\s*(?:s[oóô]u?l?[eéêiy]?(?:\s+(?:lhe|le|li|lê))?)\s*[,.:;!?…-]*\s+/i;
+const REGISTRE = /^(?:registr[ae]r?|registro|registe)\b\s*[,.:;!?-]*\s*/i;
+const VERBOS = /\b(gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i;
+const SUBSTANTIVOS = /^(gasto|gastos|despesa|compra|pagamento|receita|recebimento|entrada|ganho|sal[aá]rio)\b/i;
+
 function extrairComandoDeVoz(transcricao: string) {
-  const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const gatilho = normalizada.match(
-    /^\s*(?:(?:sole|soli|sol|soule|sou)\s*[,.:;!?-]*\s*)?(?:registre|registra|registrar|registro|registe)\b\s*[,.:;!?-]*\s*/i,
-  );
-  if (!gatilho) return null;
-  let comando = transcricao.slice(gatilho[0].length).trim().replace(/^(?:eu\s+|uma?\s+|o\s+|a\s+)/i, "");
+  let comando = transcricao.trim().replace(GATILHO_SOLE, "");
+  comando = comando.replace(REGISTRE, "").replace(/^(?:eu|uma?|o|a)\s+/i, "").trim();
   if (!comando) return null;
-  if (!/\b(gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i.test(comando)) {
-    const receita = /^(?:receita|recebimento|entrada|salario|salário)\b/i.test(comando);
-    comando = `${receita ? "recebi" : "gastei"} ${comando.replace(/^(?:gasto|despesa|receita|recebimento|entrada)\s*(?:de\s+)?/i, "")}`;
-  }
-  return comando;
+  if (VERBOS.test(comando)) return comando;
+  const substantivo = comando.match(SUBSTANTIVOS)?.[1]?.toLocaleLowerCase("pt-BR");
+  if (!substantivo) return null;
+  const receita = /^(receita|recebimento|entrada|ganho|sal)/.test(substantivo);
+  const resto = /^sal/.test(substantivo) ? comando : comando.slice(substantivo.length).replace(/^\s*(?:de\s+)?/i, "");
+  return `${receita ? "recebi" : "gastei"} ${resto}`.trim();
 }
 
 function SoleAI() {
