@@ -14,7 +14,13 @@ export async function transcribeAudio(config: TranscriptionConfig, file: File) {
   form.append("file", file, file.name);
   form.append("response_format", "json");
   form.append("stream", "true");
-  form.append("language", "pt-BR");
+  if (config.model === "openai/gpt-transcribe") {
+    form.append("languages", "pt");
+    form.append("keywords", "Sole, gastei, paguei, comprei, recebi, ganhei, reais");
+    form.append("prompt", "Comando financeiro curto em português do Brasil iniciado por Sole.");
+  } else if (config.model === "google/gemini-3.5-transcribe") {
+    form.append("language", "pt-BR");
+  }
 
   return fetch(`${config.baseURL}/audio/transcriptions`, {
     method: "POST",

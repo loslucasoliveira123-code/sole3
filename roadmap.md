@@ -9,3 +9,4 @@
 - [x] Aceitar comandos de voz iniciados diretamente por “Sole gastei” ou “Sole recebi”.
 - [x] Encerrar a gravação automaticamente após o fim da fala.
 - [x] Gerar imediatamente a prévia editável do lançamento interpretado, mantendo a confirmação antes de salvar.
+- [x] Corrigir a detecção de fala e o reconhecimento do gatilho de voz em diferentes microfones.
