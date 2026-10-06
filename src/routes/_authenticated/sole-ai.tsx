@@ -94,10 +94,17 @@ async function transcrever(file: File) {
 
 function extrairComandoDeVoz(transcricao: string) {
   const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const gatilho = normalizada.match(/^\s*(?:sole|soli|sol|soule)\s*[,.:;!?-]*\s*/i);
-  const semGatilho = gatilho ? transcricao.slice(gatilho[0].length) : transcricao;
-  const comando = semGatilho.trim().replace(/^eu\s+/i, "");
-  return /^(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i.test(comando) ? comando : null;
+  const gatilho = normalizada.match(
+    /^\s*(?:(?:sole|soli|sol|soule|sou)\s*[,.:;!?-]*\s*)?(?:registre|registra|registrar|registro|registe)\b\s*[,.:;!?-]*\s*/i,
+  );
+  if (!gatilho) return null;
+  let comando = transcricao.slice(gatilho[0].length).trim().replace(/^(?:eu\s+|uma?\s+|o\s+|a\s+)/i, "");
+  if (!comando) return null;
+  if (!/\b(gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i.test(comando)) {
+    const receita = /^(?:receita|recebimento|entrada|salario|salário)\b/i.test(comando);
+    comando = `${receita ? "recebi" : "gastei"} ${comando.replace(/^(?:gasto|despesa|receita|recebimento|entrada)\s*(?:de\s+)?/i, "")}`;
+  }
+  return comando;
 }
 
 function SoleAI() {
