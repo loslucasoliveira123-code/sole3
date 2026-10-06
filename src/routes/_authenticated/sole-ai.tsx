@@ -94,11 +94,10 @@ async function transcrever(file: File) {
 
 function extrairComandoDeVoz(transcricao: string) {
   const normalizada = transcricao.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const inicio = normalizada.match(
-    /^\s*(?:sole|soli|sol|soule)\s*[,.:;!?-]*\s*(?=(?:eu\s+)?(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b)/i,
-  );
-  if (!inicio) return null;
-  return transcricao.slice(inicio[0].length).trim().replace(/^eu\s+/i, "");
+  const gatilho = normalizada.match(/^\s*(?:sole|soli|sol|soule)\s*[,.:;!?-]*\s*/i);
+  const semGatilho = gatilho ? transcricao.slice(gatilho[0].length) : transcricao;
+  const comando = semGatilho.trim().replace(/^eu\s+/i, "");
+  return /^(?:gastei|paguei|comprei|desembolsei|recebi|ganhei|entrou|caiu)\b/i.test(comando) ? comando : null;
 }
 
 function SoleAI() {
