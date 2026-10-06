@@ -168,7 +168,7 @@ function SoleAI() {
       const transcricao = await transcrever(await atual.stop());
       const comando = extrairComandoDeVoz(transcricao);
       if (!comando) {
-        setErroVoz('Comece dizendo “Sole gastei…” ou “Sole recebi…”.');
+        setErroVoz(`Ouvi: “${transcricao}”. Diga “Sole” e a ação, por exemplo: “Sole, gastei 50 no mercado”.`);
         return;
       }
       enviar(comando);
@@ -276,12 +276,12 @@ function SoleAI() {
 
       {(gravando || erroVoz) && (
         <p className={`mt-2 text-[12px] ${erroVoz ? "text-destructive" : "text-accent"}`} role={erroVoz ? "alert" : "status"}>
-          {erroVoz || 'Gravando… diga “Sole gastei…” ou “Sole recebi…”. A gravação termina ao concluir a fala.'}
+          {erroVoz || 'Gravando… diga “Sole” e a ação (ex.: “Sole, gastei 50 no mercado”). A gravação termina ao concluir a fala.'}
         </p>
       )}
 
       <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-        Digite ou toque no microfone e comece com “Sole gastei…” ou “Sole recebi…”. O lançamento só é salvo depois da sua confirmação.
+        Digite ou toque no microfone e diga “Sole” e a ação, como “Sole, gastei 50 no mercado” ou “Sole, recebi 2.000 de salário”. O lançamento só é salvo depois da sua confirmação.
       </p>
       <NovoLancamento
         open={Boolean(rascunho)}
