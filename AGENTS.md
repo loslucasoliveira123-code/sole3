@@ -11,3 +11,4 @@
 
 - Keep SOLE AI financial commands deterministic and confirmation-gated before persisting, because inferred financial data must remain reviewable.
 - Capture voice commands as complete WAV files, stop locally after speech-ending silence, and transcribe through an authenticated server route to keep AI credentials out of the browser.
+- Project details use the authenticated /projeto/$projetoId route and shared transaction forms/lists; deletion preserves transactions through the existing ON DELETE SET NULL relation and invalidates both project and transaction caches.
