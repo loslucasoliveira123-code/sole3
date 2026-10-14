@@ -10,3 +10,7 @@
 - [x] Encerrar a gravação automaticamente após o fim da fala.
 - [x] Gerar imediatamente a prévia editável do lançamento interpretado, mantendo a confirmação antes de salvar.
 - [x] Corrigir a detecção de fala e o reconhecimento do gatilho de voz em diferentes microfones.
+- [ ] Editar e excluir projetos com confirmação, preservando seus lançamentos.
+- [ ] Exibir o nome do projeto em cada lançamento vinculado.
+- [ ] Abrir detalhes de cada projeto com indicadores e todos os seus movimentos.
+- [ ] Validar criação, edição, detalhes e exclusão de projetos.
