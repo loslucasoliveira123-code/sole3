@@ -135,3 +135,15 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
+
+progress[aria-label] {
+  appearance: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--border);
+  color: var(--accent);
+}
+progress[aria-label]::-webkit-progress-bar { background: var(--border); }
+progress[aria-label]::-webkit-progress-value { background: var(--accent); }
+progress[aria-label]::-moz-progress-bar { background: var(--accent); }
