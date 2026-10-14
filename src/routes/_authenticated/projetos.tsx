@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, PageTitle } from "@/components/AppShell";
 import { NovoProjeto, Vazio } from "@/components/Forms";
 import { brl } from "@/lib/sole-data";
-import { gastoProjeto, mesLongo, useCasal, useLancamentos, useProjetos } from "@/lib/casal";
+import { gastoProjeto, mesLongo, useCasal, useLancamentos, useProjetos, type Projeto } from "@/lib/casal";
+import { Button } from "@/components/ui/button";
+import { Pencil, ChevronRight } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({
@@ -21,6 +24,8 @@ export const Route = createFileRoute("/_authenticated/projetos")({
 
 function Projetos() {
   const [novo, setNovo] = useState(false);
+  const [selecionado, setSelecionado] = useState<Projeto | null>(null);
+  const qc = useQueryClient();
   const { data: casal } = useCasal();
   const { data: projetos = [], isLoading } = useProjetos(casal?.id);
   const { data: lanc = [] } = useLancamentos(casal?.id);
@@ -29,7 +34,7 @@ function Projetos() {
     <AppShell>
       <div className="flex items-end justify-between">
         <PageTitle eyebrow="Planejamento" title="Projetos" />
-        {projetos.length > 0 && <button type="button" onClick={() => setNovo(true)} className="rounded-2xl bg-primary px-4 py-2.5 text-[13px] font-medium text-primary-foreground">+ Projeto</button>}
+        {projetos.length > 0 && <Button type="button" onClick={() => setNovo(true)}>+ Projeto</Button>}
       </div>
       {!isLoading && projetos.length === 0 ? (
         <Vazio titulo="Nenhum projeto ainda" texto="Crie um projeto com orçamento e prazo. Depois ligue lançamentos a ele para acompanhar os gastos." acao="+ Criar projeto" onAcao={() => setNovo(true)} />
@@ -41,9 +46,10 @@ function Projetos() {
             return (
               <article key={p.id} className="folio border border-border p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-display text-[20px] leading-tight tracking-tight">{p.nome}</h2>
-                  <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[11px] text-muted-foreground">{p.status}</span>
+                  <h2 className="min-w-0 break-words font-display text-[20px] leading-tight"><Link to="/projeto/$projetoId" params={{ projetoId: p.id }}>{p.nome}</Link></h2>
+                  <Button type="button" size="icon" variant="ghost" aria-label={`Editar projeto ${p.nome}`} title="Editar projeto" onClick={() => setSelecionado(p)}><Pencil className="size-4" /></Button>
                 </div>
+                <span className="mt-1 inline-block text-[11px] text-muted-foreground">{p.status}</span>
                 {p.descricao && <p className="mt-1 text-[13px] text-muted-foreground">{p.descricao}</p>}
                 <div className="mt-4 flex items-baseline justify-between">
                   <p className="font-display text-[26px] leading-none tracking-tight">{brl(g.gasto)}</p>
@@ -51,12 +57,14 @@ function Projetos() {
                 </div>
                 <div className="mt-3 h-1.5 rounded-full bg-border"><div className={`h-full rounded-full ${pct > 100 ? "bg-destructive" : "bg-accent"}`} style={{ width: `${Math.min(100, pct)}%` }} /></div>
                 <p className="mt-3 text-[12px] text-muted-foreground">Prazo: {mesLongo(p.prazo)}{g.receita > 0 ? ` · Receitas ${brl(g.receita)}` : ""}</p>
+                 <Button asChild variant="ghost" className="mt-3 w-full justify-between px-0 text-accent"><Link to="/projeto/$projetoId" params={{ projetoId: p.id }}>Ver detalhes <ChevronRight className="size-4" /></Link></Button>
               </article>
             );
           })}
         </div>
       )}
       <NovoProjeto open={novo} onClose={() => setNovo(false)} />
+      <NovoProjeto open={Boolean(selecionado)} projeto={selecionado} onClose={() => setSelecionado(null)} onDeleted={() => { void qc.invalidateQueries({ queryKey: ["lancamentos"] }); }} />
     </AppShell>
   );
 }

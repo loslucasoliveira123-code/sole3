@@ -11,6 +11,7 @@ import {
   useSalvar,
   type Lancamento,
   type Meta,
+  type Projeto,
 } from "@/lib/casal";
 import type { RascunhoLancamento } from "@/lib/sole-command";
 import { Button } from "@/components/ui/button";
@@ -95,11 +96,13 @@ export function NovoLancamento({
   lancamento,
   rascunho,
   onSaved,
+  projetoId,
 }: {
   open: boolean;
   onClose: () => void;
   lancamento?: Lancamento | null;
   rascunho?: RascunhoLancamento | null;
+  projetoId?: string;
   onSaved?: (acao: "criado" | "editado" | "excluido", lancamento?: RascunhoLancamento) => void;
 }) {
   const { data: casal } = useCasal();
@@ -134,8 +137,8 @@ export function NovoLancamento({
     setCategoria(origem?.categoria ?? "Outros");
     setData(origem?.data ?? hoje());
     setPagador(origem?.pagador ?? "Casal");
-    setProjeto(origem?.projeto_id ?? "");
-  }, [open, lancamento, rascunho]);
+    setProjeto(origem?.projeto_id ?? projetoId ?? "");
+  }, [open, lancamento, rascunho, projetoId]);
 
   const editando = Boolean(lancamento);
   const revisando = Boolean(rascunho) && !editando;
@@ -275,7 +278,7 @@ const projSchema = z.object({
   orcamento: z.number().min(0, "Orçamento inválido").max(1e10),
 });
 
-export function NovoProjeto({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function NovoProjeto({ open, onClose, projeto, onDeleted }: { open: boolean; onClose: () => void; projeto?: Projeto | null; onDeleted?: () => void }) {
   const { data: casal } = useCasal();
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -285,17 +288,34 @@ export function NovoProjeto({ open, onClose }: { open: boolean; onClose: () => v
   const salvar = useSalvar("projetos", (v: Record<string, unknown>) =>
     supabase.from("projetos").insert(v as never),
   );
+  const atualizar = useSalvar("projetos", (v: { id: string; dados: Record<string, unknown> }) =>
+    supabase.from("projetos").update(v.dados as never).eq("id", v.id).select("id").single(),
+  );
+  const excluir = useSalvar("projetos", (id: string) =>
+    supabase.from("projetos").delete().eq("id", id).select("id").single(),
+  );
+  useEffect(() => {
+    if (!open) return;
+    setNome(projeto?.nome ?? "");
+    setDescricao(projeto?.descricao ?? "");
+    setOrcamento(projeto ? String(projeto.orcamento).replace(".", ",") : "");
+    setPrazo(projeto?.prazo?.slice(0, 7) ?? "");
+    setStatus(projeto?.status ?? "Planejamento");
+  }, [open, projeto]);
   return (
-    <Sheet open={open} onClose={onClose} title="Novo projeto">
+    <Sheet open={open} onClose={onClose} title={projeto ? "Editar projeto" : "Novo projeto"}>
       <form
         className="space-y-3"
         onSubmit={async (e) => {
           e.preventDefault();
           const p = projSchema.safeParse({ nome, descricao, orcamento: parseValor(orcamento || "0") });
           if (!p.success) { toast.error(p.error.issues[0]?.message ?? "Dados inválidos"); return; }
+          if (!casal) { toast.error("Não foi possível identificar o casal"); return; }
           try {
-            await salvar.mutateAsync({ casal_id: casal!.id, ...p.data, status, prazo: prazo ? `${prazo}-01` : null });
-            toast.success("Projeto criado");
+            const dados = { ...p.data, status, prazo: prazo ? `${prazo}-01` : null };
+            if (projeto) await atualizar.mutateAsync({ id: projeto.id, dados });
+            else await salvar.mutateAsync({ casal_id: casal.id, ...dados });
+            toast.success(projeto ? "Projeto atualizado" : "Projeto criado");
             setNome("");
             setDescricao("");
             setOrcamento("");
@@ -326,7 +346,31 @@ export function NovoProjeto({ open, onClose }: { open: boolean; onClose: () => v
             ))}
           </select>
         </Campo>
-        <Botao loading={salvar.isPending}>Criar projeto</Botao>
+        <Botao loading={salvar.isPending || atualizar.isPending}>{projeto ? "Salvar projeto" : "Criar projeto"}</Botao>
+        {projeto && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="ghost" className="w-full text-destructive">Excluir projeto</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir este projeto?</AlertDialogTitle>
+                <AlertDialogDescription>O projeto “{projeto.nome}” será excluído. Seus lançamentos serão mantidos nos movimentos do casal, mas ficarão sem projeto. Essa ação não pode ser desfeita.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction disabled={excluir.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={async () => {
+                  try {
+                    await excluir.mutateAsync(projeto.id);
+                    toast.success("Projeto excluído; lançamentos preservados");
+                    onClose();
+                    onDeleted?.();
+                  } catch (err) { toast.error((err as Error).message); }
+                }}>Excluir</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </form>
     </Sheet>
   );

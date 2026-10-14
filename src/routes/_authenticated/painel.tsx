@@ -64,7 +64,7 @@ function Dashboard() {
             const pct = p.orcamento > 0 ? (g.gasto / p.orcamento) * 100 : 0;
             return (
               <div key={p.id} className="folio border border-border p-5">
-                <div className="flex justify-between text-[14px]"><span className="font-medium">{p.nome}</span><span className="text-muted-foreground">{p.status}</span></div>
+                <div className="flex justify-between gap-3 text-[14px]"><Link to="/projeto/$projetoId" params={{ projetoId: p.id }} className="min-w-0 break-words font-medium underline underline-offset-4">{p.nome}</Link><span className="shrink-0 text-muted-foreground">{p.status}</span></div>
                 <p className="mt-2 text-[13px] text-muted-foreground">{brl(g.gasto)} de {brl(p.orcamento)}</p>
                 <div className="mt-2 h-1.5 rounded-full bg-border"><div className={`h-full rounded-full ${pct > 100 ? "bg-destructive" : pct > 80 ? "bg-warning" : "bg-success"}`} style={{ width: `${Math.min(100, pct)}%` }} /></div>
               </div>
