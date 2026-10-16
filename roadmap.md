@@ -14,3 +14,6 @@
 - [x] Exibir o nome do projeto em cada lançamento vinculado.
 - [x] Abrir detalhes de cada projeto com indicadores e todos os seus movimentos.
 - [x] Validar criação, edição, detalhes e exclusão de projetos.
+- [x] Adicionar manifesto e ícones SOLE3 para instalação.
+- [x] Adicionar modo offline seguro e proteção da prévia.
+- [x] Validar manifesto, ícones e comportamento offline.
