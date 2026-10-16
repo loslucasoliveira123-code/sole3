@@ -20,7 +20,7 @@ export default defineConfig({
     workbox: {
       globPatterns: ["**/*.{js,css,woff,woff2,png,svg,webmanifest}", "offline.html"],
       globIgnores: ["**/server/**"],
-      navigateFallback: undefined,
+      navigateFallback: null,
       navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
       cleanupOutdatedCaches: true,
       runtimeCaching: [
