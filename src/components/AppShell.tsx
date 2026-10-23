@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import logo from "@/assets/sole3-logo.png.asset.json";
+import logo from "@/assets/sole3-simbolo.png.asset.json";
 import { nomeCasal, useCasal } from "@/lib/casal";
 import { NovoLancamento } from "@/components/Forms";
 

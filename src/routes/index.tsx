@@ -1,4 +1,4 @@
-import logo2 from "@/assets/sole3-logo-2.png.asset.json";
+import logo2 from "@/assets/sole3-logo-completo.png.asset.json";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,13 +97,13 @@ function AuthPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
       <div className="rise">
-        <img src={logo2.url} alt="SOLE3" className="mx-auto size-40 object-contain mix-blend-multiply" />
-        <h1 className="mt-3 font-display text-[40px] leading-[1.05] tracking-tight text-balance">
-          {modo === "entrar" ? "Bem-vindo de volta." : "O dinheiro do casal, organizado."}
+        <img src={logo2.url} alt="SOLE3" className="mx-auto size-56 object-contain mix-blend-multiply" />
+        <h1 className="mt-3 font-display text-[30px] leading-[1.05] tracking-tight text-balance">
+          {modo === "entrar" ? "Entregue ao Senhor o seu caminho; confie nele, e o mais Ele fará." : "O dinheiro do casal, organizado."}
         </h1>
         <p className="mt-3 text-[14px] text-muted-foreground">
           {modo === "entrar"
-            ? "Entre para ver seu painel."
+            ? "Com Deus no centro, cada passo do casal constrói um futuro abençoado."
             : "Crie sua conta e comece a planejar o futuro."}
         </p>
       </div>
