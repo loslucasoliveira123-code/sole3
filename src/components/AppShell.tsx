@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import logo from "@/assets/sole3-simbolo.png.asset.json";
+import logo from "@/assets/sole3-simbolo-icone.png";
 import { nomeCasal, useCasal } from "@/lib/casal";
 import { NovoLancamento } from "@/components/Forms";
 
@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto max-w-[430px] px-5 pt-7 pb-28">
         <header className="flex items-center justify-between">
           <Link to="/painel" className="flex items-center gap-3">
-            <img src={logo.url} alt="SOLE3" className="size-12 rounded-xl bg-card object-cover mix-blend-multiply" />
+            <img src={logo} alt="SOLE3" className="size-12 rounded-xl bg-card object-contain p-1" />
             <span>
               <span className="eyebrow block text-muted-foreground">SOLE3</span>
               <span className="block text-[13px] font-medium leading-tight">{nomeCasal(casal) || "…"}</span>
