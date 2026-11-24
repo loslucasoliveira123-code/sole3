@@ -97,7 +97,7 @@ function AuthPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
       <div className="rise">
-        <img src={logo2} alt="SOLE3" className="mx-auto h-auto w-64 object-contain" width={256} height={256} />
+        <img src={logo2} alt="SOLE3" className="mx-auto h-auto w-36 bg-transparent object-contain" width={800} height={666} />
         <h1 className="mt-3 font-display text-[30px] leading-[1.05] tracking-tight text-balance">
           {modo === "entrar" ? "Bem-vindo de volta" : "O dinheiro do casal, organizado."}
         </h1>
